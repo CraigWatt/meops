@@ -1,19 +1,8 @@
-const signals = [
-  {
-    title: "Architecture shift detected",
-    summary: "A service boundary changed in a way that is worth narrating."
-  },
-  {
-    title: "Meaningful bug fix",
-    summary: "A hard issue was resolved and the lesson can be reused."
-  },
-  {
-    title: "Publishable moment",
-    summary: "This looks like a strong candidate for X, LinkedIn, or a blog update."
-  }
-];
+import { getDashboardSignals } from "../lib/signals";
 
 export default function Home() {
+  const signals = getDashboardSignals();
+
   return (
     <main className="page">
       <section className="hero">
@@ -29,13 +18,25 @@ export default function Home() {
       <section className="panel">
         <div className="panel-header">
           <h2>Signals to review</h2>
-          <span>early dashboard shell</span>
+          <span>{signals.length} queued moments</span>
         </div>
         <div className="signal-grid">
           {signals.map((signal) => (
-            <article key={signal.title} className="signal-card">
-              <h3>{signal.title}</h3>
+            <article key={signal.description} className="signal-card">
+              <div className="signal-meta">
+                <span>{signal.kind}</span>
+                <span>{signal.priority}</span>
+                {signal.publishable ? <span>publishable</span> : <span>watch</span>}
+              </div>
+              <h3>{signal.description}</h3>
               <p>{signal.summary}</p>
+              <div className="draft-list">
+                {signal.drafts.map((draft) => (
+                  <div key={`${signal.description}-${draft.channel}`} className="draft-chip">
+                    {draft.channel}
+                  </div>
+                ))}
+              </div>
             </article>
           ))}
         </div>
@@ -43,4 +44,3 @@ export default function Home() {
     </main>
   );
 }
-
