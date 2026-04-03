@@ -34,6 +34,12 @@ This repo follows the same high-level layout used in `vfo`:
 - `infra/` for operational code, deployment, and automation
 - `tests/` for cross-cutting end-to-end checks
 
+Current service surfaces:
+
+- `services/api/` for the backend API
+- `services/worker/` for ingestion and generation jobs
+- `services/web/` for the review dashboard
+
 ### Suggested starting layout
 
 ```text
@@ -139,4 +145,3 @@ Some useful first features:
 ## Next step
 
 The scaffold in this repo is intentionally minimal for now. The next good move is to choose the first stack and then generate the actual app, service, and shared package structure around it.
-
