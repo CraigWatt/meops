@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { getDashboardSignals } from "@meops/core";
+import { getDashboardSignals } from "@meops/store";
 
-export function GET() {
+export async function GET() {
+  const signals = await getDashboardSignals();
+
   return NextResponse.json({
-    signals: getDashboardSignals()
+    signals
   });
 }

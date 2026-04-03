@@ -5,7 +5,8 @@
   "type": "module",
   "dependencies": {
     "@meops/core": "workspace:*",
-    "@meops/content": "workspace:*"
+    "@meops/content": "workspace:*",
+    "@meops/store": "workspace:*"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

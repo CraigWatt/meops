@@ -1,7 +1,6 @@
 import { createServer } from "node:http";
 
-import { getDashboardSignals } from "@meops/core";
-import { channelLabel, formatDraft } from "@meops/content";
+import { getDashboardSignals } from "@meops/store";
 
 const port = Number.parseInt(process.env.PORT ?? "3001", 10);
 
@@ -15,17 +14,20 @@ const server = createServer((request, response) => {
   }
 
   if (request.method === "GET" && url.pathname === "/signals") {
-    const signals = getDashboardSignals().map((signal) => ({
-      ...signal,
-      drafts: signal.drafts.map((draft) => ({
-        ...draft,
-        label: channelLabel(draft.channel),
-        preview: formatDraft(draft)
-      }))
-    }));
-
-    response.writeHead(200, { "content-type": "application/json" });
-    response.end(JSON.stringify({ signals }));
+    void getDashboardSignals()
+      .then((signals) => {
+        response.writeHead(200, { "content-type": "application/json" });
+        response.end(JSON.stringify({ signals }));
+      })
+      .catch((error: unknown) => {
+        response.writeHead(500, { "content-type": "application/json" });
+        response.end(
+          JSON.stringify({
+            error: "store_error",
+            message: error instanceof Error ? error.message : "unknown error"
+          })
+        );
+      });
     return;
   }
 
@@ -36,4 +38,3 @@ const server = createServer((request, response) => {
 server.listen(port, () => {
   console.log(`meops api listening on http://localhost:${port}`);
 });
-

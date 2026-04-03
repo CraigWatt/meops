@@ -1,8 +1,8 @@
-import { getDashboardSignals } from "@meops/core";
+import { getDashboardSignals } from "@meops/store";
 import { channelLabel, formatDraft } from "@meops/content";
 
-export default function Home() {
-  const signals = getDashboardSignals();
+export default async function Home() {
+  const signals = await getDashboardSignals();
 
   return (
     <main className="page">
