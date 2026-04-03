@@ -1,4 +1,5 @@
-import { getDashboardSignals } from "../lib/signals";
+import { getDashboardSignals } from "@meops/core";
+import { channelLabel, formatDraft } from "@meops/content";
 
 export default function Home() {
   const signals = getDashboardSignals();
@@ -33,9 +34,13 @@ export default function Home() {
               <div className="draft-list">
                 {signal.drafts.map((draft) => (
                   <div key={`${signal.description}-${draft.channel}`} className="draft-chip">
-                    {draft.channel}
+                    {channelLabel(draft.channel)}
                   </div>
                 ))}
+              </div>
+              <div className="draft-preview">
+                <strong>Preview</strong>
+                <p>{formatDraft(signal.drafts[0])}</p>
               </div>
             </article>
           ))}

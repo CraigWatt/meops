@@ -131,3 +131,24 @@ h1 {
   color: var(--text);
   background: rgba(255, 255, 255, 0.04);
 }
+
+.draft-preview {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.draft-preview strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--accent);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.draft-preview p {
+  margin: 0;
+  color: var(--muted);
+  white-space: pre-wrap;
+}

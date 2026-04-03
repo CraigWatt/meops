@@ -1,16 +1,10 @@
-export type ContentChannel = "x" | "linkedin" | "blog" | "update-log";
-
-export interface Draft {
-  channel: ContentChannel;
-  title: string;
-  body: string;
-}
+import type { Draft, DraftChannel } from "@meops/core";
 
 export function formatDraft(draft: Draft): string {
   return `${draft.title}\n\n${draft.body}`;
 }
 
-export function channelLabel(channel: ContentChannel): string {
+export function channelLabel(channel: DraftChannel): string {
   switch (channel) {
     case "x":
       return "X";
