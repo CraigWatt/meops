@@ -14,6 +14,20 @@ const apiBase = process.env.NEXT_PUBLIC_MEOPS_API_URL ?? "";
 export function CaptureSignalForm() {
   const [state, setState] = useState<SubmitState>({ kind: "idle" });
 
+  function renderStatusText(currentState: SubmitState): string {
+    if (currentState.kind === "idle") {
+      return apiBase
+        ? "Submits to the local API store."
+        : "Set NEXT_PUBLIC_MEOPS_API_URL to enable capture.";
+    }
+
+    if (currentState.kind === "submitting") {
+      return "Capturing...";
+    }
+
+    return currentState.message;
+  }
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -114,11 +128,7 @@ export function CaptureSignalForm() {
       </form>
 
       <p className={`capture-status capture-status-${state.kind}`}>
-        {state.kind === "idle" && apiBase
-          ? "Submits to the local API store."
-          : state.kind === "idle"
-            ? "Set NEXT_PUBLIC_MEOPS_API_URL to enable capture."
-            : state.message}
+        {renderStatusText(state)}
       </p>
     </section>
   );
