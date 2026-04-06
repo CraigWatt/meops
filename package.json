@@ -10,6 +10,7 @@
     "test": "turbo run test",
     "clean": "turbo run clean"
   },
+  "packageManager": "pnpm@10.8.0",
   "devDependencies": {
     "@types/node": "^22.15.3",
     "turbo": "^2.5.8",

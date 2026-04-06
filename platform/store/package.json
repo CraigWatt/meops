@@ -1,9 +1,10 @@
 {
-  "name": "@meops/content",
+  "name": "@meops/store",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "dependencies": {
+    "@meops/content": "workspace:*",
     "@meops/core": "workspace:*"
   },
   "exports": {
@@ -17,3 +18,4 @@
     "clean": "rm -rf dist"
   }
 }
+

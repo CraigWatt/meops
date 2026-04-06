@@ -1,0 +1,28 @@
+{
+  "name": "@meops/web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "MEOPS_STORE_PATH=../../.meops/signals.json next dev",
+    "build": "MEOPS_STORE_PATH=../../.meops/signals.json next build",
+    "start": "python3 -m http.server 4173 -d out",
+    "lint": "echo 'no lint configured yet'",
+    "test": "echo 'no tests configured yet'",
+    "clean": "rm -rf .next out"
+  },
+  "dependencies": {
+    "@meops/core": "workspace:*",
+    "@meops/content": "workspace:*",
+    "@meops/store": "workspace:*",
+    "next": "^15.3.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "typescript": "^5.8.3"
+  }
+}
