@@ -53,6 +53,10 @@ export function CaptureSignalForm() {
         throw new Error(errorResult.message ?? errorResult.error ?? "Failed to capture signal");
       }
 
+      if (!("signal" in result)) {
+        throw new Error("Failed to capture signal");
+      }
+
       setState({
         kind: "success",
         message: `Captured ${result.signal.description}`
