@@ -4,12 +4,12 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "MEOPS_STORE_PATH=../../.meops/signals.json next dev",
+    "build": "MEOPS_STORE_PATH=../../.meops/signals.json next build",
+    "start": "python3 -m http.server 4173 -d out",
     "lint": "echo 'no lint configured yet'",
     "test": "echo 'no tests configured yet'",
-    "clean": "rm -rf .next"
+    "clean": "rm -rf .next out"
   },
   "dependencies": {
     "@meops/core": "workspace:*",

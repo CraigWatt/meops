@@ -5,12 +5,11 @@
   "type": "module",
   "dependencies": {
     "@meops/core": "workspace:*",
-    "@meops/content": "workspace:*",
     "@meops/store": "workspace:*"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "dev": "tsc -w -p tsconfig.json",
+    "build": "MEOPS_STORE_PATH=../../.meops/signals.json tsc -p tsconfig.json",
+    "dev": "MEOPS_STORE_PATH=../../.meops/signals.json tsc -w -p tsconfig.json",
     "lint": "echo 'no lint configured yet'",
     "test": "echo 'no tests configured yet'",
     "clean": "rm -rf dist"

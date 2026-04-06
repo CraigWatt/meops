@@ -38,7 +38,7 @@ Current service surfaces:
 
 - `services/api/` for the backend API
 - `services/worker/` for ingestion and generation jobs
-- `services/web/` for the review dashboard
+- `services/web/` for the review dashboard, statically exported to GitHub Pages
 - `platform/store/` for file-backed signal state
 
 ### Suggested starting layout
