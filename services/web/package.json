@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "MEOPS_STORE_PATH=../../.meops/signals.json next dev",
+    "dev": "NEXT_PUBLIC_MEOPS_API_URL=http://localhost:3001 MEOPS_STORE_PATH=../../.meops/signals.json next dev",
     "build": "MEOPS_STORE_PATH=../../.meops/signals.json next build",
     "start": "python3 -m http.server 4173 -d out",
     "lint": "echo 'no lint configured yet'",

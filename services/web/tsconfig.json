@@ -4,11 +4,13 @@
     "jsx": "preserve",
     "allowJs": false,
     "noEmit": true,
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "incremental": true,
+    "isolatedModules": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "plugins": [{ "name": "next" }]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }
-

@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
+import { randomUUID } from "node:crypto";
 
 import {
   type DashboardSignal,
@@ -78,6 +79,17 @@ function normalizeSignal(signal: SignalRecord): DashboardSignal {
   };
 }
 
+function createSignalRecord(signal: Omit<SignalRecord, "id"> & Partial<Pick<SignalRecord, "id">>): SignalRecord {
+  return {
+    id: signal.id ?? randomUUID(),
+    kind: signal.kind,
+    summary: signal.summary,
+    repository: signal.repository,
+    timestamp: signal.timestamp,
+    priority: signal.priority
+  };
+}
+
 export async function readSignalStore(storePath?: string): Promise<SignalStoreSnapshot> {
   const resolvedPath = resolveStorePath(storePath);
 
@@ -120,4 +132,19 @@ export async function ensureSignalStore(storePath?: string): Promise<SignalStore
 export async function getDashboardSignals(storePath?: string): Promise<DashboardSignal[]> {
   const snapshot = await ensureSignalStore(storePath);
   return snapshot.signals.map(normalizeSignal);
+}
+
+export async function appendSignal(
+  signal: Omit<SignalRecord, "id"> & Partial<Pick<SignalRecord, "id">>,
+  storePath?: string
+): Promise<DashboardSignal> {
+  const resolvedPath = resolveStorePath(storePath);
+  const snapshot = await ensureSignalStore(resolvedPath);
+  const record = createSignalRecord(signal);
+  const nextSnapshot: SignalStoreSnapshot = {
+    signals: [...snapshot.signals, record]
+  };
+
+  await writeSignalStore(nextSnapshot, resolvedPath);
+  return normalizeSignal(record);
 }
