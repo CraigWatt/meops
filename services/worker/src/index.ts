@@ -1,9 +1,11 @@
 import { getDashboardSignals, isPublishableSignal } from "@meops/store";
 import { channelLabel } from "@meops/content";
 
+const storePath = process.env.MEOPS_STORE_PATH;
+
 async function runOnce() {
   try {
-    const publishable = (await getDashboardSignals()).filter((signal) =>
+    const publishable = (await getDashboardSignals(storePath)).filter((signal) =>
       isPublishableSignal(signal)
     );
 

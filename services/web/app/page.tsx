@@ -1,5 +1,6 @@
 import { getDashboardSignals } from "@meops/store";
 import { channelLabel, formatDraft } from "@meops/content";
+import { CaptureSignalForm } from "../components/capture-signal-form";
 
 export default async function Home() {
   const signals = await getDashboardSignals();
@@ -15,6 +16,8 @@ export default async function Home() {
           friction.
         </p>
       </section>
+
+      <CaptureSignalForm />
 
       <section className="panel">
         <div className="panel-header">
