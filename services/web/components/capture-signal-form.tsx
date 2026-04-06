@@ -49,7 +49,8 @@ export function CaptureSignalForm() {
         | { error?: string; message?: string };
 
       if (!response.ok) {
-        throw new Error(result.message ?? result.error ?? "Failed to capture signal");
+        const errorResult = result as { error?: string; message?: string };
+        throw new Error(errorResult.message ?? errorResult.error ?? "Failed to capture signal");
       }
 
       setState({
