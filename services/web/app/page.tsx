@@ -25,29 +25,36 @@ export default async function Home() {
           <span>{signals.length} queued moments</span>
         </div>
         <div className="signal-grid">
-          {signals.map((signal) => (
-            <article key={signal.description} className="signal-card">
-              <div className="signal-meta">
-                <span>{signal.kind}</span>
-                <span>{signal.priority}</span>
-                <span>{signal.source ?? "manual"}</span>
-                {signal.publishable ? <span>publishable</span> : <span>watch</span>}
-              </div>
-              <h3>{signal.description}</h3>
-              <p>{signal.summary}</p>
-              <div className="draft-list">
-                {signal.drafts.map((draft) => (
-                  <div key={`${signal.description}-${draft.channel}`} className="draft-chip">
-                    {channelLabel(draft.channel)}
-                  </div>
-                ))}
-              </div>
-              <div className="draft-preview">
-                <strong>Preview</strong>
-                <p>{formatDraft(signal.drafts[0])}</p>
-              </div>
-            </article>
-          ))}
+          {signals.map((signal) => {
+            const previewDraft =
+              signal.drafts.find((draft) => draft.channel === "blog") ?? signal.drafts[0];
+
+            return (
+              <article key={signal.description} className="signal-card">
+                <div className="signal-meta">
+                  <span>{signal.kind}</span>
+                  <span>{signal.priority}</span>
+                  <span>{signal.source ?? "manual"}</span>
+                  {signal.publishable ? <span>publishable</span> : <span>watch</span>}
+                </div>
+                <h3>{signal.description}</h3>
+                <p>{signal.summary}</p>
+                <div className="draft-list">
+                  {signal.drafts.map((draft) => (
+                    <div key={`${signal.description}-${draft.channel}`} className="draft-chip">
+                      {channelLabel(draft.channel)}
+                    </div>
+                  ))}
+                </div>
+                <div className="draft-preview">
+                  <strong>
+                    {previewDraft ? `${channelLabel(previewDraft.channel)} preview` : "Preview"}
+                  </strong>
+                  <p>{previewDraft ? formatDraft(previewDraft) : "No draft available yet."}</p>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
     </main>

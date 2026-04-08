@@ -41,6 +41,7 @@ Current service surfaces:
 - `services/web/` for the review dashboard, statically exported to GitHub Pages
 - `platform/store/` for file-backed signal state
 - `platform/extraction/` for turning git history into signal candidates
+- `platform/generation/` for channel-specific drafts, including the blog output for `craigwatt.co.uk`
 
 ### Suggested starting layout
 

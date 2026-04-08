@@ -1,11 +1,10 @@
 {
-  "name": "@meops/store",
+  "name": "@meops/generation",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "dependencies": {
-    "@meops/core": "workspace:*",
-    "@meops/generation": "workspace:*"
+    "@meops/core": "workspace:*"
   },
   "exports": {
     ".": "./src/index.ts"

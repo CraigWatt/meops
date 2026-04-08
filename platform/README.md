@@ -8,6 +8,7 @@ This directory contains shared platform components used by multiple services.
 - Cross-cutting runtime capabilities like auth, observability, and messaging
 - Reusable tooling and common integration modules
 - Git-history signal extraction under `platform/extraction/`
+- Channel-specific draft generation under `platform/generation/`
 
 ## Tests
 

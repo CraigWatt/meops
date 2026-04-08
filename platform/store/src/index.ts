@@ -4,13 +4,12 @@ import { randomUUID } from "node:crypto";
 
 import {
   type DashboardSignal,
-  type Draft,
   type SignalEvent,
   type SignalInput,
   describeSignal,
   isPublishableSignal
 } from "@meops/core";
-import { channelLabel } from "@meops/content";
+import { buildDrafts } from "@meops/generation";
 
 export interface SignalRecord extends SignalEvent {
   id: string;
@@ -59,30 +58,12 @@ function resolveStorePath(storePath?: string): string {
 }
 
 function normalizeSignal(signal: SignalRecord): DashboardSignal {
-  const drafts: Draft[] = [
-    {
-      channel: "x",
-      title: `meops update for ${signal.repository}`,
-      body: signal.summary
-    },
-    {
-      channel: "linkedin",
-      title: `meops signal: ${signal.kind}`,
-      body: `${describeSignal(signal)}\n\n${signal.summary}`
-    },
-    {
-      channel: "update-log",
-      title: `Audit entry for ${signal.repository}`,
-      body: `${describeSignal(signal)} | ${channelLabel("update-log")}`
-    }
-  ];
-
   return {
     ...signal,
     description: describeSignal(signal),
     publishable: isPublishableSignal(signal),
-    drafts,
-    source: signal.source,
+    drafts: buildDrafts(signal),
+    source: signal.source ?? "manual",
     sourceId: signal.sourceId
   };
 }
