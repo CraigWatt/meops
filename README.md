@@ -40,6 +40,7 @@ Current service surfaces:
 - `services/worker/` for ingestion and generation jobs
 - `services/web/` for the review dashboard, statically exported to GitHub Pages
 - `platform/store/` for file-backed signal state
+- `platform/extraction/` for turning git history into signal candidates
 
 ### Suggested starting layout
 

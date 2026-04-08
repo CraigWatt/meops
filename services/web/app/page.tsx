@@ -30,6 +30,7 @@ export default async function Home() {
               <div className="signal-meta">
                 <span>{signal.kind}</span>
                 <span>{signal.priority}</span>
+                <span>{signal.source ?? "manual"}</span>
                 {signal.publishable ? <span>publishable</span> : <span>watch</span>}
               </div>
               <h3>{signal.description}</h3>

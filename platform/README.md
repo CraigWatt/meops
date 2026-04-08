@@ -7,6 +7,7 @@ This directory contains shared platform components used by multiple services.
 - Shared libraries and internal SDKs
 - Cross-cutting runtime capabilities like auth, observability, and messaging
 - Reusable tooling and common integration modules
+- Git-history signal extraction under `platform/extraction/`
 
 ## Tests
 
@@ -16,4 +17,3 @@ This directory contains shared platform components used by multiple services.
 
 - One-off service implementations
 - Environment-specific infrastructure definitions
-
