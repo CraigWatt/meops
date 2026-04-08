@@ -86,7 +86,8 @@ const server = createServer((request, response) => {
             summary: payload.summary,
             repository: payload.repository,
             timestamp,
-            priority: payload.priority
+            priority: payload.priority,
+            source: "manual"
           },
           storePath
         )

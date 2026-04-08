@@ -17,4 +17,3 @@ This directory contains product and domain services.
 
 - Organization-wide shared platform code
 - Global infrastructure definitions
-

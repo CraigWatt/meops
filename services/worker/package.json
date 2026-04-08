@@ -6,11 +6,12 @@
   "dependencies": {
     "@meops/core": "workspace:*",
     "@meops/content": "workspace:*",
+    "@meops/extraction": "workspace:*",
     "@meops/store": "workspace:*"
   },
   "scripts": {
-    "build": "MEOPS_STORE_PATH=../../.meops/signals.json tsc -p tsconfig.json",
-    "dev": "MEOPS_STORE_PATH=../../.meops/signals.json tsc -w -p tsconfig.json",
+    "build": "MEOPS_REPO_PATH=../.. MEOPS_STORE_PATH=../../.meops/signals.json tsc -p tsconfig.json",
+    "dev": "MEOPS_REPO_PATH=../.. MEOPS_STORE_PATH=../../.meops/signals.json tsc -w -p tsconfig.json",
     "lint": "echo 'no lint configured yet'",
     "test": "echo 'no tests configured yet'",
     "clean": "rm -rf dist"

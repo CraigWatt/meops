@@ -1,5 +1,6 @@
 export type SignalKind = "commit" | "pull_request" | "release" | "milestone";
 export type SignalPriority = "low" | "medium" | "high";
+export type SignalSource = "manual" | "git_commit";
 export type DraftChannel = "x" | "linkedin" | "blog" | "update-log";
 
 export interface SignalEvent {
@@ -8,6 +9,11 @@ export interface SignalEvent {
   repository: string;
   timestamp: string;
   priority: SignalPriority;
+}
+
+export interface SignalInput extends SignalEvent {
+  source?: SignalSource;
+  sourceId?: string;
 }
 
 export function isPublishableSignal(signal: SignalEvent): boolean {
@@ -28,4 +34,6 @@ export interface DashboardSignal extends SignalEvent {
   description: string;
   publishable: boolean;
   drafts: Draft[];
+  source?: SignalSource;
+  sourceId?: string;
 }

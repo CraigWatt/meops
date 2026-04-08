@@ -6,6 +6,7 @@ import {
   type DashboardSignal,
   type Draft,
   type SignalEvent,
+  type SignalInput,
   describeSignal,
   isPublishableSignal
 } from "@meops/core";
@@ -13,6 +14,8 @@ import { channelLabel } from "@meops/content";
 
 export interface SignalRecord extends SignalEvent {
   id: string;
+  source?: SignalInput["source"];
+  sourceId?: string;
 }
 
 export interface SignalStoreSnapshot {
@@ -28,7 +31,8 @@ const seedSignals: SignalRecord[] = [
     summary: "Finished the first meops monorepo scaffold and published the initial PR.",
     repository: "CraigWatt/meops",
     timestamp: "2026-04-03T22:22:17Z",
-    priority: "high"
+    priority: "high",
+    source: "manual"
   },
   {
     id: "signal-002",
@@ -36,7 +40,8 @@ const seedSignals: SignalRecord[] = [
     summary: "Added the first web dashboard shell for reviewing publishable moments.",
     repository: "CraigWatt/meops",
     timestamp: "2026-04-03T22:35:00Z",
-    priority: "medium"
+    priority: "medium",
+    source: "manual"
   },
   {
     id: "signal-003",
@@ -44,7 +49,8 @@ const seedSignals: SignalRecord[] = [
     summary: "Introduced shared signal and draft primitives for future automation.",
     repository: "CraigWatt/meops",
     timestamp: "2026-04-03T22:48:00Z",
-    priority: "low"
+    priority: "low",
+    source: "manual"
   }
 ];
 
@@ -75,19 +81,27 @@ function normalizeSignal(signal: SignalRecord): DashboardSignal {
     ...signal,
     description: describeSignal(signal),
     publishable: isPublishableSignal(signal),
-    drafts
+    drafts,
+    source: signal.source,
+    sourceId: signal.sourceId
   };
 }
 
-function createSignalRecord(signal: Omit<SignalRecord, "id"> & Partial<Pick<SignalRecord, "id">>): SignalRecord {
+function createSignalRecord(signal: SignalInput & Partial<Pick<SignalRecord, "id">>): SignalRecord {
   return {
     id: signal.id ?? randomUUID(),
     kind: signal.kind,
     summary: signal.summary,
     repository: signal.repository,
     timestamp: signal.timestamp,
-    priority: signal.priority
+    priority: signal.priority,
+    source: signal.source ?? "manual",
+    sourceId: signal.sourceId
   };
+}
+
+function findSignalBySourceId(snapshot: SignalStoreSnapshot, sourceId: string): SignalRecord | undefined {
+  return snapshot.signals.find((signal) => signal.sourceId === sourceId);
 }
 
 export async function readSignalStore(storePath?: string): Promise<SignalStoreSnapshot> {
@@ -135,7 +149,7 @@ export async function getDashboardSignals(storePath?: string): Promise<Dashboard
 }
 
 export async function appendSignal(
-  signal: Omit<SignalRecord, "id"> & Partial<Pick<SignalRecord, "id">>,
+  signal: SignalInput & Partial<Pick<SignalRecord, "id">>,
   storePath?: string
 ): Promise<DashboardSignal> {
   const resolvedPath = resolveStorePath(storePath);
@@ -147,4 +161,33 @@ export async function appendSignal(
 
   await writeSignalStore(nextSnapshot, resolvedPath);
   return normalizeSignal(record);
+}
+
+export async function appendSignalIfMissing(
+  signal: SignalInput & Partial<Pick<SignalRecord, "id">>,
+  storePath?: string
+): Promise<{ signal: DashboardSignal; created: boolean }> {
+  const resolvedPath = resolveStorePath(storePath);
+  const snapshot = await ensureSignalStore(resolvedPath);
+
+  if (signal.sourceId) {
+    const existing = findSignalBySourceId(snapshot, signal.sourceId);
+    if (existing) {
+      return {
+        signal: normalizeSignal(existing),
+        created: false
+      };
+    }
+  }
+
+  const record = createSignalRecord(signal);
+  const nextSnapshot: SignalStoreSnapshot = {
+    signals: [...snapshot.signals, record]
+  };
+
+  await writeSignalStore(nextSnapshot, resolvedPath);
+  return {
+    signal: normalizeSignal(record),
+    created: true
+  };
 }
