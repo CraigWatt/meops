@@ -4,6 +4,8 @@ import { randomUUID } from "node:crypto";
 
 import {
   type DashboardSignal,
+  type RepositoryCatalogEntry,
+  type RepositoryProfile,
   type SignalEvent,
   type SignalInput,
   describeSignal,
@@ -15,10 +17,12 @@ export interface SignalRecord extends SignalEvent {
   id: string;
   source?: SignalInput["source"];
   sourceId?: string;
+  repositoryProfile?: RepositoryProfile;
 }
 
 export interface SignalStoreSnapshot {
   signals: SignalRecord[];
+  repositories: RepositoryCatalogEntry[];
 }
 
 const defaultStorePath = resolve(process.cwd(), ".meops", "signals.json");
@@ -53,6 +57,22 @@ const seedSignals: SignalRecord[] = [
   }
 ];
 
+const seedRepositories: RepositoryCatalogEntry[] = [
+  {
+    name: "meops",
+    fullName: "CraigWatt/meops",
+    url: "https://github.com/CraigWatt/meops",
+    description: "meops personal operations system",
+    defaultBranch: "main",
+    topics: ["automation", "content", "developer-experience"],
+    watched: true,
+    source: "manual",
+    discoveredAt: "2026-04-03T22:22:17Z",
+    lastSyncedAt: "2026-04-03T22:48:00Z",
+    signalCount: 3
+  }
+];
+
 function resolveStorePath(storePath?: string): string {
   return resolve(storePath ?? defaultStorePath);
 }
@@ -64,7 +84,19 @@ function normalizeSignal(signal: SignalRecord): DashboardSignal {
     publishable: isPublishableSignal(signal),
     drafts: buildDrafts(signal),
     source: signal.source ?? "manual",
-    sourceId: signal.sourceId
+    sourceId: signal.sourceId,
+    repositoryProfile: signal.repositoryProfile
+  };
+}
+
+function normalizeRepository(
+  repository: RepositoryCatalogEntry
+): RepositoryCatalogEntry {
+  return {
+    ...repository,
+    signalCount: repository.signalCount ?? 0,
+    watched: repository.watched ?? true,
+    source: repository.source ?? "manual"
   };
 }
 
@@ -77,7 +109,8 @@ function createSignalRecord(signal: SignalInput & Partial<Pick<SignalRecord, "id
     timestamp: signal.timestamp,
     priority: signal.priority,
     source: signal.source ?? "manual",
-    sourceId: signal.sourceId
+    sourceId: signal.sourceId,
+    repositoryProfile: signal.repositoryProfile
   };
 }
 
@@ -93,7 +126,7 @@ export async function readSignalStore(storePath?: string): Promise<SignalStoreSn
     return JSON.parse(raw) as SignalStoreSnapshot;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      return { signals: seedSignals };
+      return { signals: seedSignals, repositories: seedRepositories };
     }
 
     throw error;
@@ -129,6 +162,65 @@ export async function getDashboardSignals(storePath?: string): Promise<Dashboard
   return snapshot.signals.map(normalizeSignal);
 }
 
+export async function getRepositoryCatalog(storePath?: string): Promise<RepositoryCatalogEntry[]> {
+  const snapshot = await ensureSignalStore(storePath);
+  return (snapshot.repositories ?? seedRepositories).map(normalizeRepository);
+}
+
+export async function upsertRepository(
+  repository: RepositoryProfile,
+  storePath?: string,
+  options: {
+    source?: RepositoryCatalogEntry["source"];
+    watched?: boolean;
+    signalCountDelta?: number;
+    discoveredAt?: string;
+    lastSyncedAt?: string;
+    lastSignalAt?: string;
+  } = {}
+): Promise<RepositoryCatalogEntry> {
+  const resolvedPath = resolveStorePath(storePath);
+  const snapshot = await ensureSignalStore(resolvedPath);
+  const repositories = snapshot.repositories ?? [];
+  const now = new Date().toISOString();
+  const existing = repositories.find((candidate) => candidate.fullName === repository.fullName);
+  const nextRepository: RepositoryCatalogEntry = normalizeRepository({
+    name: repository.name,
+    fullName: repository.fullName,
+    url: repository.url,
+    description: repository.description,
+    defaultBranch: repository.defaultBranch,
+    language: repository.language,
+    topics: repository.topics,
+    isPrivate: repository.isPrivate,
+    isArchived: repository.isArchived,
+    pushedAt: repository.pushedAt,
+    updatedAt: repository.updatedAt,
+    watched: options.watched ?? existing?.watched ?? true,
+    source: options.source ?? existing?.source ?? "manual",
+    discoveredAt: options.discoveredAt ?? existing?.discoveredAt ?? now,
+    lastSyncedAt: options.lastSyncedAt ?? existing?.lastSyncedAt,
+    lastSignalAt: options.lastSignalAt ?? existing?.lastSignalAt,
+    signalCount: (existing?.signalCount ?? 0) + (options.signalCountDelta ?? 0)
+  });
+
+  const nextRepositories = existing
+    ? repositories.map((candidate) =>
+        candidate.fullName === repository.fullName ? nextRepository : candidate
+      )
+    : [...repositories, nextRepository];
+
+  await writeSignalStore(
+    {
+      signals: snapshot.signals,
+      repositories: nextRepositories
+    },
+    resolvedPath
+  );
+
+  return nextRepository;
+}
+
 export async function appendSignal(
   signal: SignalInput & Partial<Pick<SignalRecord, "id">>,
   storePath?: string
@@ -137,7 +229,8 @@ export async function appendSignal(
   const snapshot = await ensureSignalStore(resolvedPath);
   const record = createSignalRecord(signal);
   const nextSnapshot: SignalStoreSnapshot = {
-    signals: [...snapshot.signals, record]
+    signals: [...snapshot.signals, record],
+    repositories: snapshot.repositories ?? seedRepositories
   };
 
   await writeSignalStore(nextSnapshot, resolvedPath);
@@ -163,7 +256,8 @@ export async function appendSignalIfMissing(
 
   const record = createSignalRecord(signal);
   const nextSnapshot: SignalStoreSnapshot = {
-    signals: [...snapshot.signals, record]
+    signals: [...snapshot.signals, record],
+    repositories: snapshot.repositories ?? seedRepositories
   };
 
   await writeSignalStore(nextSnapshot, resolvedPath);

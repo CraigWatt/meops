@@ -3,12 +3,36 @@ export type SignalPriority = "low" | "medium" | "high";
 export type SignalSource = "manual" | "git_commit";
 export type DraftChannel = "x" | "linkedin" | "blog" | "update-log";
 
+export interface RepositoryProfile {
+  name: string;
+  fullName: string;
+  url: string;
+  description?: string;
+  defaultBranch?: string;
+  language?: string;
+  topics?: string[];
+  isPrivate?: boolean;
+  isArchived?: boolean;
+  pushedAt?: string;
+  updatedAt?: string;
+}
+
+export interface RepositoryCatalogEntry extends RepositoryProfile {
+  watched: boolean;
+  source: "manual" | "github_discovery";
+  discoveredAt?: string;
+  lastSyncedAt?: string;
+  lastSignalAt?: string;
+  signalCount: number;
+}
+
 export interface SignalEvent {
   kind: SignalKind;
   summary: string;
   repository: string;
   timestamp: string;
   priority: SignalPriority;
+  repositoryProfile?: RepositoryProfile;
 }
 
 export interface SignalInput extends SignalEvent {

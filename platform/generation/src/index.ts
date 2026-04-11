@@ -24,14 +24,47 @@ function headlineCase(value: string): string {
 }
 
 function signalAngle(signal: SignalEvent): string {
+  const description = signal.repositoryProfile?.description?.trim();
+
+  if (description) {
+    return description;
+  }
+
+  const language = signal.repositoryProfile?.language;
+  if (language) {
+    return `A real engineering signal from ${signal.repository}, written in ${language}.`;
+  }
+
   return `A real engineering signal from ${signal.repository}.`;
 }
 
-function buildXDraft(signal: SignalEvent): Draft {
+function repositoryContext(signal: SignalEvent): string {
+  const parts: string[] = [];
+
+  if (signal.repositoryProfile?.language) {
+    parts.push(`Language: ${signal.repositoryProfile.language}`);
+  }
+
+  if (signal.repositoryProfile?.defaultBranch) {
+    parts.push(`Default branch: ${signal.repositoryProfile.defaultBranch}`);
+  }
+
+  if (signal.repositoryProfile?.topics?.length) {
+    parts.push(`Topics: ${signal.repositoryProfile.topics.join(", ")}`);
+  }
+
+  return parts.length > 0 ? parts.map((part) => `- ${part}`).join("\n") : "- Repository context not yet discovered.";
+}
+
+function buildXDraft(signal: SignalEvent, brandName: string): Draft {
   const body = normalizeLineBreaks(`
 ${signal.summary}
 
 ${signal.repository} ${signal.kind} progress worth sharing.
+
+${signal.repositoryProfile?.language ? `${signal.repositoryProfile.language} work, real momentum.` : ""}
+
+Built for ${brandName}.
   `);
 
   return {
@@ -41,7 +74,7 @@ ${signal.repository} ${signal.kind} progress worth sharing.
   };
 }
 
-function buildLinkedInDraft(signal: SignalEvent): Draft {
+function buildLinkedInDraft(signal: SignalEvent, brandName: string): Draft {
   const body = normalizeLineBreaks(`
 ${signal.summary}
 
@@ -53,6 +86,10 @@ What changed:
 
 Why it matters:
 This is the kind of progress that compounds over time and shapes the larger product story.
+
+${signal.repositoryProfile?.description ? `Repository context: ${signal.repositoryProfile.description}` : ""}
+
+Prepared by ${brandName}.
   `);
 
   return {
@@ -62,7 +99,7 @@ This is the kind of progress that compounds over time and shapes the larger prod
   };
 }
 
-function buildBlogDraft(signal: SignalEvent, blogBaseUrl: string): Draft {
+function buildBlogDraft(signal: SignalEvent, blogBaseUrl: string, brandName: string): Draft {
   const body = normalizeLineBreaks(`
 # ${headlineCase(signal.summary)}
 
@@ -83,8 +120,9 @@ That kind of work is what tends to build momentum in a product over time.
 - Repository: ${signal.repository}
 - Kind: ${signal.kind}
 - Priority: ${signal.priority}
+${repositoryContext(signal)}
 
-Published for [${blogBaseUrl}](${blogBaseUrl}).
+Published for [${blogBaseUrl}](${blogBaseUrl}) via ${brandName}.
   `);
 
   return {
@@ -94,13 +132,14 @@ Published for [${blogBaseUrl}](${blogBaseUrl}).
   };
 }
 
-function buildUpdateLogDraft(signal: SignalEvent): Draft {
+function buildUpdateLogDraft(signal: SignalEvent, brandName: string): Draft {
   const body = normalizeLineBreaks(`
 ${signal.summary}
 
 Repository: ${signal.repository}
 Kind: ${signal.kind}
 Priority: ${signal.priority}
+Brand: ${brandName}
   `);
 
   return {
@@ -115,12 +154,13 @@ export function buildDrafts(
   options: DraftGenerationOptions = {}
 ): Draft[] {
   const blogBaseUrl = options.blogBaseUrl ?? "https://craigwatt.co.uk";
+  const brandName = options.brandName ?? "meops";
 
   return [
-    buildXDraft(signal),
-    buildLinkedInDraft(signal),
-    buildBlogDraft(signal, blogBaseUrl),
-    buildUpdateLogDraft(signal)
+    buildXDraft(signal, brandName),
+    buildLinkedInDraft(signal, brandName),
+    buildBlogDraft(signal, blogBaseUrl, brandName),
+    buildUpdateLogDraft(signal, brandName)
   ];
 }
 
