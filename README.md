@@ -41,6 +41,7 @@ Current service surfaces:
 - `services/web/` for the review dashboard, statically exported to GitHub Pages
 - `platform/store/` for file-backed signal state
 - `platform/extraction/` for turning git history into signal candidates
+- `platform/discovery/` for GitHub repo discovery and remote commit collection
 - `platform/generation/` for channel-specific drafts, including the blog output for `craigwatt.co.uk`
 
 ### Suggested starting layout
@@ -139,6 +140,7 @@ That gives us a real product foundation without overcommitting to infrastructure
 
 Some useful first features:
 
+- GitHub repo discovery and allowlisting so meops knows which repos to watch
 - commit and PR digesting into short “what changed / why it matters” summaries
 - repo milestone detection for meaningful releases or architecture shifts
 - audience-specific draft generation for X, LinkedIn, and blog posts

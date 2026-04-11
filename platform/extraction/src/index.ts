@@ -3,6 +3,7 @@ import { basename, resolve } from "node:path";
 import { promisify } from "node:util";
 
 import {
+  type RepositoryProfile,
   type SignalInput,
   type SignalKind,
   type SignalPriority
@@ -23,6 +24,12 @@ export interface ExtractedSignal extends SignalInput {
   sourceId: string;
 }
 
+export interface ExtractSignalsOptions {
+  repoPath?: string;
+  repository?: string;
+  repositoryProfile?: RepositoryProfile;
+}
+
 function normalizeRepositorySlug(remoteUrl: string, repoPath: string): string {
   const httpsMatch = remoteUrl.match(/github\.com[:/](?<owner>[^/]+)\/(?<repo>[^/.]+)(?:\.git)?$/i);
   if (httpsMatch?.groups?.owner && httpsMatch.groups.repo) {
@@ -31,6 +38,16 @@ function normalizeRepositorySlug(remoteUrl: string, repoPath: string): string {
 
   const localName = basename(resolve(repoPath)) || "local";
   return `local/${localName}`;
+}
+
+function createLocalRepositoryProfile(repository: string, repoPath: string): RepositoryProfile {
+  const localName = repository.split("/").at(-1) ?? basename(resolve(repoPath)) ?? "local";
+
+  return {
+    name: localName,
+    fullName: repository,
+    url: `https://github.com/${repository}`
+  };
 }
 
 async function runGit(args: string[], repoPath: string): Promise<string> {
@@ -49,6 +66,11 @@ export async function getRepositorySlug(repoPath = process.cwd()): Promise<strin
   } catch {
     return normalizeRepositorySlug("", repoPath);
   }
+}
+
+export async function getRepositoryProfile(repoPath = process.cwd()): Promise<RepositoryProfile> {
+  const repository = await getRepositorySlug(repoPath);
+  return createLocalRepositoryProfile(repository, repoPath);
 }
 
 export async function collectRecentCommits(
@@ -149,9 +171,11 @@ function detectPriority(subject: string, body: string): SignalPriority {
 
 export async function extractSignalsFromCommits(
   commits: GitCommitSnapshot[],
-  repoPath = process.cwd()
+  options: ExtractSignalsOptions = {}
 ): Promise<ExtractedSignal[]> {
-  const repository = await getRepositorySlug(repoPath);
+  const repoPath = options.repoPath ?? process.cwd();
+  const repository = options.repository ?? (await getRepositorySlug(repoPath));
+  const repositoryProfile = options.repositoryProfile ?? (await getRepositoryProfile(repoPath));
 
   return commits.map((commit) => ({
     kind: detectKind(commit.subject, commit.body),
@@ -160,7 +184,8 @@ export async function extractSignalsFromCommits(
     timestamp: commit.timestamp,
     priority: detectPriority(commit.subject, commit.body),
     source: "git_commit",
-    sourceId: commit.hash
+    sourceId: `${repository}:${commit.hash}`,
+    repositoryProfile
   }));
 }
 
@@ -169,5 +194,5 @@ export async function scanRepositoryForSignals(
   limit = 12
 ): Promise<ExtractedSignal[]> {
   const commits = await collectRecentCommits(repoPath, limit);
-  return extractSignalsFromCommits(commits, repoPath);
+  return extractSignalsFromCommits(commits, { repoPath });
 }

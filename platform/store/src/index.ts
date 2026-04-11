@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 
 import {
   type DashboardSignal,
+  type RepositoryProfile,
   type SignalEvent,
   type SignalInput,
   describeSignal,
@@ -15,6 +16,7 @@ export interface SignalRecord extends SignalEvent {
   id: string;
   source?: SignalInput["source"];
   sourceId?: string;
+  repositoryProfile?: RepositoryProfile;
 }
 
 export interface SignalStoreSnapshot {
@@ -64,7 +66,8 @@ function normalizeSignal(signal: SignalRecord): DashboardSignal {
     publishable: isPublishableSignal(signal),
     drafts: buildDrafts(signal),
     source: signal.source ?? "manual",
-    sourceId: signal.sourceId
+    sourceId: signal.sourceId,
+    repositoryProfile: signal.repositoryProfile
   };
 }
 
@@ -77,7 +80,8 @@ function createSignalRecord(signal: SignalInput & Partial<Pick<SignalRecord, "id
     timestamp: signal.timestamp,
     priority: signal.priority,
     source: signal.source ?? "manual",
-    sourceId: signal.sourceId
+    sourceId: signal.sourceId,
+    repositoryProfile: signal.repositoryProfile
   };
 }
 

@@ -6,6 +6,7 @@
   "dependencies": {
     "@meops/core": "workspace:*",
     "@meops/content": "workspace:*",
+    "@meops/discovery": "workspace:*",
     "@meops/extraction": "workspace:*",
     "@meops/store": "workspace:*"
   },
