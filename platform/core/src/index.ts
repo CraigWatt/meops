@@ -17,6 +17,15 @@ export interface RepositoryProfile {
   updatedAt?: string;
 }
 
+export interface RepositoryCatalogEntry extends RepositoryProfile {
+  watched: boolean;
+  source: "manual" | "github_discovery";
+  discoveredAt?: string;
+  lastSyncedAt?: string;
+  lastSignalAt?: string;
+  signalCount: number;
+}
+
 export interface SignalEvent {
   kind: SignalKind;
   summary: string;

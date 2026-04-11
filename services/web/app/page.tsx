@@ -1,9 +1,10 @@
-import { getDashboardSignals } from "@meops/store";
+import { getDashboardSignals, getRepositoryCatalog } from "@meops/store";
 import { channelLabel, formatDraft } from "@meops/content";
 import { CaptureSignalForm } from "../components/capture-signal-form";
 
 export default async function Home() {
   const signals = await getDashboardSignals();
+  const repositories = await getRepositoryCatalog();
 
   return (
     <main className="page">
@@ -18,6 +19,43 @@ export default async function Home() {
       </section>
 
       <CaptureSignalForm />
+
+      <section className="panel">
+        <div className="panel-header">
+          <h2>Repositories in view</h2>
+          <span>{repositories.length} tracked repos</span>
+        </div>
+        <div className="signal-grid">
+          {repositories.map((repository) => (
+            <article key={repository.fullName} className="signal-card">
+              <div className="signal-meta">
+                <span>{repository.watched ? "watching" : "paused"}</span>
+                <span>{repository.source}</span>
+                <span>{repository.signalCount} signals</span>
+              </div>
+              <h3>{repository.fullName}</h3>
+              <p>{repository.description ?? "No repository description available yet."}</p>
+              <div className="draft-list">
+                <div className="draft-chip">{repository.defaultBranch ?? "main"}</div>
+                {repository.language ? <div className="draft-chip">{repository.language}</div> : null}
+                {repository.topics?.slice(0, 3).map((topic) => (
+                  <div key={`${repository.fullName}-${topic}`} className="draft-chip">
+                    {topic}
+                  </div>
+                ))}
+              </div>
+              <div className="draft-preview">
+                <strong>Sync state</strong>
+                <p>
+                  {repository.lastSyncedAt
+                    ? `Last synced ${repository.lastSyncedAt}`
+                    : "Not synced yet."}
+                </p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <section className="panel">
         <div className="panel-header">

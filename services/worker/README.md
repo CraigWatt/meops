@@ -13,3 +13,7 @@ Useful env vars:
 - `MEOPS_REPO_ALLOWLIST` to limit discovery to a comma-separated set of repo names or full names
 - `MEOPS_REPO_DISCOVERY_LIMIT` to cap how many repositories are scanned from GitHub
 - `MEOPS_GITHUB_COMMIT_LIMIT` to cap commits collected per repository
+
+Repository discovery updates the store's repository catalog so the dashboard can
+show which repos are in view, when they were synced, and how many signals have
+come out of them.

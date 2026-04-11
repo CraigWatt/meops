@@ -1,7 +1,7 @@
 import { isPublishableSignal } from "@meops/core";
 import { channelLabel } from "@meops/content";
 import { discoverRepositorySignals } from "@meops/discovery";
-import { appendSignalIfMissing, getDashboardSignals } from "@meops/store";
+import { appendSignalIfMissing, getDashboardSignals, upsertRepository } from "@meops/store";
 import { type ExtractedSignal, scanRepositoryForSignals } from "@meops/extraction";
 
 const repoPath = process.env.MEOPS_REPO_PATH ?? process.cwd();
@@ -45,11 +45,38 @@ async function syncGitSignals() {
   }
 
   let createdCount = 0;
+  const seenRepositories = new Set<string>();
 
   for (const signal of extractedSignals) {
+    if (signal.repositoryProfile && !seenRepositories.has(signal.repositoryProfile.fullName)) {
+      await upsertRepository(signal.repositoryProfile, storePath, {
+        source: githubToken ? "github_discovery" : "manual",
+        watched: true,
+        discoveredAt: new Date().toISOString(),
+        lastSyncedAt: new Date().toISOString()
+      });
+      seenRepositories.add(signal.repositoryProfile.fullName);
+    }
+
     const result = await appendSignalIfMissing(signal, storePath);
     if (result.created) {
       createdCount += 1;
+
+      if (signal.repositoryProfile) {
+        await upsertRepository(signal.repositoryProfile, storePath, {
+          source: githubToken ? "github_discovery" : "manual",
+          watched: true,
+          signalCountDelta: 1,
+          lastSyncedAt: new Date().toISOString(),
+          lastSignalAt: signal.timestamp
+        });
+      }
+    } else if (signal.repositoryProfile) {
+      await upsertRepository(signal.repositoryProfile, storePath, {
+        source: githubToken ? "github_discovery" : "manual",
+        watched: true,
+        lastSyncedAt: new Date().toISOString()
+      });
     }
   }
 
