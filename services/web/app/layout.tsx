@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata = {
-  title: "meops",
-  description: "Turn work into signal"
+  title: "meops | turn work into signal",
+  description: "Repository awareness, prepared drafts, and live signal visibility"
 };
 
 export default function RootLayout({
@@ -18,4 +18,3 @@ export default function RootLayout({
     </html>
   );
 }
-
