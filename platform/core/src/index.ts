@@ -56,7 +56,17 @@ export interface Draft {
   status: DraftStatus;
 }
 
+export interface DraftPublicationRecord {
+  signalId: string;
+  channel: DraftChannel;
+  status: DraftStatus;
+  updatedAt: string;
+  actor?: string;
+  externalId?: string;
+}
+
 export interface DashboardSignal extends SignalEvent {
+  id: string;
   description: string;
   publishable: boolean;
   drafts: Draft[];
