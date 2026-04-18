@@ -148,6 +148,18 @@ Some useful first features:
 - a reusable content memory of prior announcements and phrasing
 - a queue of “publishable moments” that can be reviewed before going public
 
+## Local environment
+
+Use [`.env.example`](./.env.example) as the local template for repo discovery and visibility sync.
+
+Recommended local setup:
+
+1. Copy `.env.example` to `.env.local`
+2. Fill in `MEOPS_GITHUB_TOKEN`
+3. Optionally set `MEOPS_REPO_ALLOWLIST` to narrow discovery
+
+The token stays out of git because `.env` and `.env.*` are ignored.
+
 ## Next step
 
 The scaffold in this repo is intentionally minimal for now. The next good move is to choose the first stack and then generate the actual app, service, and shared package structure around it.

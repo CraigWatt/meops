@@ -10,6 +10,7 @@ only scanning the current local checkout.
 
 Useful env vars:
 
+- `.env.example` at the repo root is the local template for these values
 - `MEOPS_REPO_ALLOWLIST` to limit discovery to a comma-separated set of repo names or full names
 - `MEOPS_REPO_DISCOVERY_LIMIT` to cap how many repositories are scanned from GitHub
 - `MEOPS_GITHUB_COMMIT_LIMIT` to cap commits collected per repository
