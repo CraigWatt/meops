@@ -27,12 +27,13 @@ export interface SignalStoreSnapshot {
   signals: SignalRecord[];
   repositories: RepositoryCatalogEntry[];
   draftPublications: DraftPublicationRecord[];
+  snapshotRefreshedAt?: string;
 }
 
 const defaultStorePath = resolve(process.cwd(), ".meops", "signals.json");
 
 function emptySnapshot(): SignalStoreSnapshot {
-  return { signals: [], repositories: [], draftPublications: [] };
+  return { signals: [], repositories: [], draftPublications: [], snapshotRefreshedAt: undefined };
 }
 
 function resolveStorePath(storePath?: string): string {
@@ -49,7 +50,8 @@ function normalizeSnapshot(snapshot: Partial<SignalStoreSnapshot>): SignalStoreS
   return {
     signals: snapshot.signals ?? [],
     repositories: snapshot.repositories ?? [],
-    draftPublications: snapshot.draftPublications ?? []
+    draftPublications: snapshot.draftPublications ?? [],
+    snapshotRefreshedAt: snapshot.snapshotRefreshedAt
   };
 }
 
@@ -161,6 +163,20 @@ export async function writeSignalStore(snapshot: SignalStoreSnapshot, storePath?
   await writeFile(resolvedPath, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
 }
 
+export async function touchSignalStore(storePath?: string): Promise<SignalStoreSnapshot> {
+  const resolvedPath = resolveStorePath(storePath);
+  const snapshot = await ensureSignalStore(resolvedPath);
+  const nextSnapshot: SignalStoreSnapshot = {
+    signals: snapshot.signals,
+    repositories: snapshot.repositories ?? [],
+    draftPublications: snapshot.draftPublications ?? [],
+    snapshotRefreshedAt: new Date().toISOString()
+  };
+
+  await writeSignalStore(nextSnapshot, resolvedPath);
+  return nextSnapshot;
+}
+
 export async function ensureSignalStore(storePath?: string): Promise<SignalStoreSnapshot> {
   const resolvedPath = resolveStorePath(storePath);
 
@@ -168,9 +184,9 @@ export async function ensureSignalStore(storePath?: string): Promise<SignalStore
     await readFile(resolvedPath, "utf8");
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      const snapshot = await readSignalStore(resolvedPath);
-      await writeSignalStore(snapshot, resolvedPath);
-      return snapshot;
+    const snapshot = await readSignalStore(resolvedPath);
+    await writeSignalStore(snapshot, resolvedPath);
+    return snapshot;
     }
 
     throw error;
@@ -193,6 +209,13 @@ export async function getDashboardSignals(storePath?: string): Promise<Dashboard
 export async function getRepositoryCatalog(storePath?: string): Promise<RepositoryCatalogEntry[]> {
   const snapshot = await ensureSignalStore(storePath);
   return (snapshot.repositories ?? []).map(normalizeRepository);
+}
+
+export async function getSnapshotMetadata(
+  storePath?: string
+): Promise<Pick<SignalStoreSnapshot, "snapshotRefreshedAt">> {
+  const snapshot = await ensureSignalStore(storePath);
+  return { snapshotRefreshedAt: snapshot.snapshotRefreshedAt };
 }
 
 export async function upsertRepository(
@@ -260,7 +283,8 @@ export async function appendSignal(
   const nextSnapshot: SignalStoreSnapshot = {
     signals: [...snapshot.signals, record],
     repositories: snapshot.repositories ?? [],
-    draftPublications: snapshot.draftPublications ?? []
+    draftPublications: snapshot.draftPublications ?? [],
+    snapshotRefreshedAt: snapshot.snapshotRefreshedAt
   };
 
   await writeSignalStore(nextSnapshot, resolvedPath);
@@ -288,7 +312,8 @@ export async function appendSignalIfMissing(
   const nextSnapshot: SignalStoreSnapshot = {
     signals: [...snapshot.signals, record],
     repositories: snapshot.repositories ?? [],
-    draftPublications: snapshot.draftPublications ?? []
+    draftPublications: snapshot.draftPublications ?? [],
+    snapshotRefreshedAt: snapshot.snapshotRefreshedAt
   };
 
   await writeSignalStore(nextSnapshot, resolvedPath);
@@ -331,7 +356,8 @@ export async function upsertDraftPublication(
     {
       signals: snapshot.signals,
       repositories: snapshot.repositories ?? [],
-      draftPublications: nextPublications
+      draftPublications: nextPublications,
+      snapshotRefreshedAt: snapshot.snapshotRefreshedAt
     },
     resolvedPath
   );

@@ -1,7 +1,7 @@
 import { isPublishableSignal } from "@meops/core";
 import { channelLabel } from "@meops/content";
 import { discoverRepositorySignals } from "@meops/discovery";
-import { appendSignalIfMissing, getDashboardSignals, upsertRepository } from "@meops/store";
+import { appendSignalIfMissing, getDashboardSignals, touchSignalStore, upsertRepository } from "@meops/store";
 import { type ExtractedSignal } from "@meops/extraction";
 
 const storePath = process.env.MEOPS_STORE_PATH;
@@ -93,6 +93,8 @@ async function runOnce() {
     const publishable = (await getDashboardSignals(storePath)).filter((signal) =>
       isPublishableSignal(signal)
     );
+
+    await touchSignalStore(storePath);
 
     console.log(
       `meops worker scanned ${syncResult.candidateCount} git commits from ${syncResult.mode} discovery and added ${syncResult.createdCount} new signals`
