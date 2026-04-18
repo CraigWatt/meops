@@ -157,6 +157,81 @@ h1 {
   box-shadow: none;
 }
 
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.header-button,
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+}
+
+.header-button:hover,
+.action-button:hover {
+  border-color: var(--border-hover);
+  background: var(--surface-hover);
+  transform: translateY(-1px);
+}
+
+.action-button {
+  background: var(--accent);
+  border-color: transparent;
+  color: #06161a;
+}
+
+.action-button--secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+
+.draft-textarea {
+  width: 100%;
+  min-height: 12rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  font: inherit;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.draft-textarea:focus {
+  outline: 2px solid var(--border-accent);
+  outline-offset: 2px;
+}
+
+.draft-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.draft-help {
+  margin-top: 0.9rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
 /* Stats row */
 .stats-row {
   display: grid;
@@ -255,6 +330,10 @@ h1 {
 .card--featured {
   border-color: var(--border-accent);
   background: linear-gradient(135deg, var(--accent-muted), transparent 60%);
+}
+
+.x-handoff-card {
+  margin-bottom: 2rem;
 }
 
 .card-header {

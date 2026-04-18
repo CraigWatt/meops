@@ -59,7 +59,7 @@ Current implemented surfaces:
 2. The worker discovers repos and refreshes the signal snapshot with `MEOPS_GITHUB_TOKEN`.
 3. The refreshed snapshot is committed back to `main` as `.meops/signals.json`.
 4. The static web build reads that refreshed snapshot.
-5. The Pages site shows watched repos, signals, draft review status, and an editable aggregate X draft.
+5. The Pages site shows watched repos, signals, draft review status, an editable aggregate X draft, and a refresh handoff to GitHub Actions.
 6. The private GitHub Actions publish workflow can only be run by the repository owner.
 
 ## Local setup

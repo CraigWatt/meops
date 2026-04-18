@@ -11,6 +11,12 @@ export interface DraftGenerationOptions {
   brandName?: string;
 }
 
+interface RepoStory {
+  label: string;
+  score: number;
+  themes: string[];
+}
+
 function normalizeLineBreaks(value: string): string {
   return value
     .replace(/\n{3,}/g, "\n\n")
@@ -52,11 +58,275 @@ function truncate(value: string, maxLength: number): string {
   return `${value.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
 }
 
-function compactSignalSummary(signal: DashboardSignal): string {
-  const summary = signal.summary.replace(/\s+/g, " ").trim();
-  const preview = truncate(summary, 56);
+function signalStrength(signal: DashboardSignal): number {
+  const priorityScore =
+    signal.priority === "high" ? 30 : signal.priority === "medium" ? 20 : 10;
+  const kindScore =
+    signal.kind === "release" ? 20 : signal.kind === "milestone" ? 16 : signal.kind === "commit" ? 12 : 8;
+  const publishableScore = signal.publishable ? 15 : 0;
+  const summary = signal.summary.toLowerCase();
+  const genericPenalty =
+    (summary.includes("first commit") ? 12 : 0) +
+    (summary.includes("env template") ? 8 : 0) +
+    (summary.includes("readme") ? 6 : 0) +
+    (summary.includes("template") ? 4 : 0) +
+    (summary.startsWith("merge pull request") ? 2 : 0);
+  const recencyScore = Math.max(
+    0,
+    12 - Math.min(12, Math.floor((Date.now() - new Date(signal.timestamp).getTime()) / 1000 / 60 / 60))
+  );
 
-  return `${signal.repository} · ${signal.kind} · ${preview}`;
+  return priorityScore + kindScore + publishableScore + recencyScore - genericPenalty;
+}
+
+function normalizeRepoLabel(repository: RepositoryCatalogEntry): string {
+  if (repository.name === "meops") {
+    return "meops";
+  }
+
+  if (repository.name === "ProjectOps") {
+    return "ProjectOps";
+  }
+
+  if (repository.name === "WebRefine") {
+    return "WebRefine";
+  }
+
+  if (repository.name === "Butr") {
+    return "Butr";
+  }
+
+  if (repository.name === "civiq") {
+    return "civiq";
+  }
+
+  if (repository.name === "vfo") {
+    return "vfo";
+  }
+
+  if (repository.name === "dvdnavtex") {
+    return "dvdnavtex";
+  }
+
+  const label = repository.name
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[-_/]+/g, " ")
+    .trim();
+
+  if (repository.name === "CraigWatt") {
+    return "profile";
+  }
+
+  if (repository.name === "craig-watt-website") {
+    return "website";
+  }
+
+  if (repository.name === "post-bazzite-install-scripts") {
+    return "bazzite";
+  }
+
+  if (label.length <= 18) {
+    return label;
+  }
+
+  return label.split(" ").slice(0, 2).join(" ");
+}
+
+function normalizeThemeFragment(value: string): string {
+  return value
+    .replace(/^codex[/-]/i, "")
+    .replace(/^feat[/-]/i, "")
+    .replace(/^fix[/-]/i, "")
+    .replace(/^docs[/-]/i, "")
+    .replace(/^ci[/-]/i, "")
+    .replace(/[-_/]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function summarizeSignalTheme(signal: DashboardSignal): string {
+  const summary = signal.summary.trim();
+  const lowered = summary.toLowerCase();
+
+  if (lowered.startsWith("merge pull request")) {
+    const branchMatch = summary.match(/from\s+[^/]+\/(.+)$/i);
+    const branch = branchMatch?.[1] ?? "";
+    const branchTheme = normalizeThemeFragment(branch);
+
+    if (branchTheme) {
+      return truncate(branchTheme, 28);
+    }
+
+    if (lowered.includes("pages")) {
+      return "pages";
+    }
+
+    return "merged pr";
+  }
+
+  if (/^bump /.test(lowered)) {
+    return "deps";
+  }
+
+  if (/cve/.test(lowered)) {
+    return "CVE fix";
+  }
+
+  if (/sign in|magic link/.test(lowered)) {
+    return "sign-in";
+  }
+
+  if (/device family packs/.test(lowered)) {
+    return "device packs";
+  }
+
+  if (/hdr/.test(lowered) && /fallback/.test(lowered)) {
+    return "hdr fallback";
+  }
+
+  if (/pages workflow/.test(lowered)) {
+    return "pages";
+  }
+
+  if (/github pages/.test(lowered)) {
+    return "pages";
+  }
+
+  if (/integration foundation/.test(lowered)) {
+    return "foundation";
+  }
+
+  if (/readme/.test(lowered)) {
+    return "README";
+  }
+
+  if (/logo|favicon|butter|theme/.test(lowered)) {
+    return "brand";
+  }
+
+  if (/repo discovery/.test(lowered)) {
+    return "discovery";
+  }
+
+  if (/signal extraction/.test(lowered)) {
+    return "signals";
+  }
+
+  if (/draft generation/.test(lowered)) {
+    return "drafts";
+  }
+
+  if (/local env template/.test(lowered)) {
+    return "env";
+  }
+
+  if (/setup scripts|bazzite|xone|grub/.test(lowered)) {
+    return "setup";
+  }
+
+  if (/ci\.yml/.test(lowered) || /^ci\b/.test(lowered)) {
+    return "CI";
+  }
+
+  if (/monorepo scaffold/.test(lowered)) {
+    return "scaffold";
+  }
+
+  const words = normalizeThemeFragment(summary)
+    .split(" ")
+    .filter(Boolean)
+    .filter(
+      (word) =>
+        !/^(add|update|fix|remove|create|make|merge|pull|request|from|the|and|of|for|to|with|main|into|first|new|an|a|on|by|in)$/i.test(
+          word
+        )
+    );
+
+  return truncate(words.slice(0, 3).join(" "), 24) || "work";
+}
+
+function buildRepoStories(signals: DashboardSignal[], repositories: RepositoryCatalogEntry[]): RepoStory[] {
+  const signalsByRepo = new Map<string, DashboardSignal[]>();
+
+  for (const signal of signals) {
+    const current = signalsByRepo.get(signal.repository) ?? [];
+    current.push(signal);
+    signalsByRepo.set(signal.repository, current);
+  }
+
+  return repositories
+    .filter((repository) => repository.watched)
+    .map((repository) => {
+      const repoSignals = (signalsByRepo.get(repository.fullName) ?? signalsByRepo.get(repository.name) ?? [])
+        .slice()
+        .sort((left, right) => signalStrength(right) - signalStrength(left));
+      const strongest = repoSignals[0];
+      const runnerUp = repoSignals[1];
+      const themes = [strongest, runnerUp]
+        .filter(Boolean)
+        .map((signal) => summarizeSignalTheme(signal as DashboardSignal))
+        .filter((theme, index, list) => theme && list.indexOf(theme) === index)
+        .slice(0, 2);
+
+      if (repository.name === "post-bazzite-install-scripts" && (!themes[0] || themes[0] === "commit" || themes[0] === "work")) {
+        themes.splice(0, themes.length, "setup");
+      }
+
+      if (repository.name === "CraigWatt" && themes[0] === "commit") {
+        themes.splice(0, themes.length, "README");
+      }
+
+      return {
+        label: normalizeRepoLabel(repository),
+        score: strongest ? signalStrength(strongest) : 0,
+        themes: themes.length > 0 ? themes : [repository.description?.trim() || "work"]
+      };
+    })
+    .sort((left, right) => right.score - left.score || left.label.localeCompare(right.label));
+}
+
+function renderRepoStories(stories: RepoStory[], themeCount: number): string {
+  return stories
+    .map((story) => `${story.label}: ${story.themes.slice(0, themeCount).join(" + ")}`)
+    .join("; ");
+}
+
+function composeSnapshotBody(
+  brandName: string,
+  repositoryCount: number,
+  signalCount: number,
+  publishableCount: number,
+  stories: RepoStory[],
+  maxLength: number
+): string {
+  const introFull = `${brandName} snapshot: ${repositoryCount} repos watched, ${signalCount} signals tracked, ${publishableCount} ready to review.`;
+  const introCompact = `${brandName}: ${repositoryCount} repos, ${signalCount} signals, ${publishableCount} ready.`;
+
+  const candidates = [
+    `${introFull}\n\n${renderRepoStories(stories, 2)}`,
+    `${introCompact}\n\n${renderRepoStories(stories, 2)}`,
+    `${introCompact}\n\n${renderRepoStories(stories, 1)}`
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeLineBreaks(candidate);
+    if (normalized.length <= maxLength) {
+      return normalized;
+    }
+  }
+
+  let remaining = [...stories];
+  while (remaining.length > 1) {
+    const next = `${introCompact}\n\n${renderRepoStories(remaining, 1)}`;
+    const normalized = normalizeLineBreaks(next);
+    if (normalized.length <= maxLength) {
+      return normalized;
+    }
+
+    remaining = remaining.slice(0, -1);
+  }
+
+  return truncate(normalizeLineBreaks(`${introCompact}\n\n${renderRepoStories(remaining, 1)}`), maxLength);
 }
 
 function buildXDraft(signal: SignalEvent, brandName: string): Draft {
@@ -116,7 +386,6 @@ export function buildDrafts(
 export interface SnapshotDraftOptions {
   brandName?: string;
   maxLength?: number;
-  highlightCount?: number;
 }
 
 export function buildSnapshotXDraft(
@@ -126,22 +395,23 @@ export function buildSnapshotXDraft(
 ): Draft {
   const brandName = options.brandName ?? "meops";
   const maxLength = options.maxLength ?? 280;
-  const highlightCount = options.highlightCount ?? 3;
-  const watchedRepositories = repositories.filter((repository) => repository.watched);
   const publishableSignals = [...signals]
     .filter((signal) => signal.publishable)
     .sort((left, right) => new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime());
-  const highlights = publishableSignals.slice(0, highlightCount).map(compactSignalSummary);
-  const body = normalizeLineBreaks(`
-${brandName} snapshot: ${watchedRepositories.length} repos watched, ${signals.length} signals tracked, ${publishableSignals.length} ready to review.
-
-${highlights.length > 0 ? `Latest signals: ${highlights.join(" | ")}` : "Latest signals: no publishable moments in this snapshot yet."}
-  `);
+  const stories = buildRepoStories(signals, repositories);
+  const body = composeSnapshotBody(
+    brandName,
+    stories.length,
+    signals.length,
+    publishableSignals.length,
+    stories,
+    maxLength
+  );
 
   return {
     channel: "x",
     title: `${headlineCase(brandName)} snapshot`,
-    body: truncate(body, maxLength),
+    body,
     status: publishableSignals.length > 0 ? "needs_review" : "prepared"
   };
 }
