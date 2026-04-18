@@ -1,5 +1,7 @@
 import { getDashboardSignals, getRepositoryCatalog } from "@meops/store";
 import { channelLabel, formatDraft } from "@meops/content";
+import { buildSnapshotXDraft } from "@meops/generation";
+import { XHandoffPanel } from "./x-handoff-panel";
 
 function formatTimestamp(timestamp?: string): string {
   if (!timestamp) {
@@ -104,6 +106,7 @@ export default async function Home() {
   const latestSyncTime = orderedRepositories[0]?.lastSyncedAt;
   const hasSyncedData = repositories.some((repo) => repo.lastSyncedAt || repo.source === "github_discovery");
   const snapshotState = formatSnapshotState(latestSyncTime, repositories.length);
+  const xSnapshotDraft = buildSnapshotXDraft(orderedSignals, orderedRepositories);
 
   return (
     <main className="page">
@@ -147,6 +150,13 @@ export default async function Home() {
           <span className="stat-detail">{snapshotState}</span>
         </div>
       </div>
+
+      <XHandoffPanel
+        draftTitle={xSnapshotDraft.title}
+        draftBody={xSnapshotDraft.body}
+        repositoryCount={activeRepositories.length}
+        workflowUrl="https://github.com/CraigWatt/meops/actions/workflows/publish-x.yml"
+      />
 
       {/* Publishing channels */}
       <section className="section">

@@ -82,6 +82,9 @@ importers:
       '@meops/core':
         specifier: workspace:*
         version: link:../../platform/core
+      '@meops/generation':
+        specifier: workspace:*
+        version: link:../../platform/generation
       '@meops/store':
         specifier: workspace:*
         version: link:../../platform/store
