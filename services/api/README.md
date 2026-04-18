@@ -16,7 +16,10 @@ Publishing routes require `MEOPS_PUBLISH_TOKEN` and a `Bearer` token in the
 
 To actually publish approved drafts, configure:
 
-- `MEOPS_X_ACCESS_TOKEN` for X posting
+- `MEOPS_X_CONSUMER_KEY` for X OAuth 1.0a signing
+- `MEOPS_X_CONSUMER_SECRET` for X OAuth 1.0a signing
+- `MEOPS_X_ACCESS_TOKEN` for X OAuth 1.0a signing
+- `MEOPS_X_ACCESS_TOKEN_SECRET` for X OAuth 1.0a signing
 - `MEOPS_X_API_BASE` if you need to override the X API host
 - `MEOPS_LINKEDIN_ACCESS_TOKEN` for LinkedIn posting
 - `MEOPS_LINKEDIN_AUTHOR_URN` for the member or organization author

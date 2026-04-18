@@ -73,6 +73,13 @@ Recommended local setup:
 
 The token stays out of git because `.env` and `.env.*` are ignored.
 
+For publish testing, add the X OAuth 1.0a secrets to GitHub or local env:
+
+- `MEOPS_X_CONSUMER_KEY`
+- `MEOPS_X_CONSUMER_SECRET`
+- `MEOPS_X_ACCESS_TOKEN`
+- `MEOPS_X_ACCESS_TOKEN_SECRET`
+
 ## Next step
 
 The next likely slice is tightening the private publish workflow and adding any remaining channel-specific polish around X and LinkedIn output.

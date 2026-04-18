@@ -1,4 +1,5 @@
 import { type Draft, type DraftChannel } from "@meops/core";
+import { createHmac, randomBytes } from "node:crypto";
 
 export type PublishChannel = Extract<DraftChannel, "x" | "linkedin">;
 
@@ -10,7 +11,10 @@ export interface PublishResult {
 }
 
 export interface PublishDraftOptions {
+  xConsumerKey?: string;
+  xConsumerSecret?: string;
   xAccessToken?: string;
+  xAccessTokenSecret?: string;
   xApiBaseUrl?: string;
   linkedinAccessToken?: string;
   linkedinApiBaseUrl?: string;
@@ -33,6 +37,67 @@ function responseBodyMessage(bodyText: string, statusCode: number): string {
   }
 
   return trimmed;
+}
+
+function percentEncode(value: string): string {
+  return encodeURIComponent(value)
+    .replace(/[!'()*]/g, (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`);
+}
+
+function oauthNonce(): string {
+  return randomBytes(16).toString("hex");
+}
+
+function oauthTimestamp(): string {
+  return Math.floor(Date.now() / 1000).toString();
+}
+
+function buildOAuth1Header(parameters: Record<string, string>): string {
+  return `OAuth ${Object.entries(parameters)
+    .map(([key, value]) => `${percentEncode(key)}="${percentEncode(value)}"`)
+    .join(", ")}`;
+}
+
+function signatureBaseString(method: string, url: string, parameters: Record<string, string>): string {
+  const parameterString = Object.entries(parameters)
+    .sort(([leftKey, leftValue], [rightKey, rightValue]) => {
+      const leftPair = `${percentEncode(leftKey)}=${percentEncode(leftValue)}`;
+      const rightPair = `${percentEncode(rightKey)}=${percentEncode(rightValue)}`;
+      return leftPair.localeCompare(rightPair);
+    })
+    .map(([key, value]) => `${percentEncode(key)}=${percentEncode(value)}`)
+    .join("&");
+
+  return [method.toUpperCase(), percentEncode(url), percentEncode(parameterString)].join("&");
+}
+
+function signOAuth1Request(
+  method: string,
+  url: string,
+  consumerKey: string,
+  consumerSecret: string,
+  token: string,
+  tokenSecret: string
+): string {
+  const nonce = oauthNonce();
+  const timestamp = oauthTimestamp();
+  const oauthParameters: Record<string, string> = {
+    oauth_consumer_key: consumerKey,
+    oauth_nonce: nonce,
+    oauth_signature_method: "HMAC-SHA1",
+    oauth_timestamp: timestamp,
+    oauth_token: token,
+    oauth_version: "1.0"
+  };
+
+  const baseString = signatureBaseString(method, url, oauthParameters);
+  const signingKey = `${percentEncode(consumerSecret)}&${percentEncode(tokenSecret)}`;
+  const signature = createHmac("sha1", signingKey).update(baseString).digest("base64");
+
+  return buildOAuth1Header({
+    ...oauthParameters,
+    oauth_signature: signature
+  });
 }
 
 async function postJson(
@@ -69,9 +134,21 @@ async function publishToX(
   draft: Draft,
   options: PublishDraftOptions
 ): Promise<PublishResult> {
+  const consumerKey = requireValue(
+    options.xConsumerKey ?? process.env.MEOPS_X_CONSUMER_KEY,
+    "MEOPS_X_CONSUMER_KEY must be configured to publish X drafts"
+  );
+  const consumerSecret = requireValue(
+    options.xConsumerSecret ?? process.env.MEOPS_X_CONSUMER_SECRET,
+    "MEOPS_X_CONSUMER_SECRET must be configured to publish X drafts"
+  );
   const accessToken = requireValue(
     options.xAccessToken ?? process.env.MEOPS_X_ACCESS_TOKEN,
     "MEOPS_X_ACCESS_TOKEN must be configured to publish X drafts"
+  );
+  const accessTokenSecret = requireValue(
+    options.xAccessTokenSecret ?? process.env.MEOPS_X_ACCESS_TOKEN_SECRET,
+    "MEOPS_X_ACCESS_TOKEN_SECRET must be configured to publish X drafts"
   );
   const apiBaseUrl = (options.xApiBaseUrl ?? process.env.MEOPS_X_API_BASE ?? "https://api.x.com").replace(
     /\/$/,
@@ -92,7 +169,14 @@ async function publishToX(
     {
       method: "POST",
       headers: {
-        authorization: `Bearer ${accessToken}`,
+        authorization: signOAuth1Request(
+          "POST",
+          `${apiBaseUrl}/2/tweets`,
+          consumerKey,
+          consumerSecret,
+          accessToken,
+          accessTokenSecret
+        ),
         "content-type": "application/json"
       },
       body: JSON.stringify({ text: payloadText })
