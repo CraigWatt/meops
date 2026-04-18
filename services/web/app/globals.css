@@ -232,6 +232,39 @@ h1 {
   line-height: 1.6;
 }
 
+.draft-provenance {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.draft-provenance-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.draft-provenance-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.draft-provenance-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.draft-provenance-summary {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
 /* Stats row */
 .stats-row {
   display: grid;

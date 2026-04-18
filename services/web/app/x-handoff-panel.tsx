@@ -1,34 +1,50 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { type SnapshotSignalSource } from "@meops/generation";
 
 interface XHandoffPanelProps {
   draftTitle: string;
   draftBody: string;
   workflowUrl: string;
   repositoryCount: number;
+  sourceCount: number;
+  sources: SnapshotSignalSource[];
+  draftCacheKey: string;
 }
 
-const storageKey = "meops-x-handoff-draft";
+const storageKeyPrefix = "meops-x-handoff-draft";
+
+function formatSourceLabel(source: SnapshotSignalSource): string {
+  return `${source.repository} · ${source.kind} · ${source.priority}`;
+}
 
 export function XHandoffPanel({
   draftTitle,
   draftBody,
   workflowUrl,
-  repositoryCount
+  repositoryCount,
+  sourceCount,
+  sources,
+  draftCacheKey
 }: XHandoffPanelProps) {
   const [body, setBody] = useState(draftBody);
   const [copied, setCopied] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const storageKey = `${storageKeyPrefix}:${draftCacheKey}`;
 
   useEffect(() => {
     setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
 
     const saved = window.localStorage.getItem(storageKey);
-    if (saved) {
-      setBody(saved);
-    }
-  }, []);
+    setBody(saved ?? draftBody);
+  }, [draftBody, hydrated, storageKey]);
 
   useEffect(() => {
     if (!hydrated) {
@@ -46,6 +62,12 @@ export function XHandoffPanel({
     await navigator.clipboard.writeText(trimmedBody);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1500);
+  }
+
+  function resetDraft() {
+    window.localStorage.removeItem(storageKey);
+    setBody(draftBody);
+    setCopied(false);
   }
 
   return (
@@ -84,9 +106,33 @@ export function XHandoffPanel({
           spellCheck
         />
 
+        <div className="draft-provenance">
+          <div className="draft-provenance-header">
+            <span className="draft-help">
+              Derived from {sourceCount} signals across {repositoryCount} repos
+            </span>
+            {sourceCount > sources.length && (
+              <span className="draft-help">+{sourceCount - sources.length} more signals</span>
+            )}
+          </div>
+          <div className="draft-provenance-list">
+            {sources.map((source) => (
+              <div key={`${source.repository}-${source.timestamp}-${source.summary}`} className="draft-provenance-item">
+                <span className="tag tag--accent">{formatSourceLabel(source)}</span>
+                <span className="draft-provenance-summary" title={source.summary}>
+                  {source.summary}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="draft-actions">
           <button type="button" className="action-button action-button--secondary" onClick={copyDraft}>
             {copied ? "Copied" : "Copy draft"}
+          </button>
+          <button type="button" className="action-button action-button--secondary" onClick={resetDraft}>
+            Reset draft
           </button>
           <a className="action-button" href={workflowUrl} target="_blank" rel="noreferrer">
             Open GitHub Actions

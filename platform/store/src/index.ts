@@ -265,7 +265,8 @@ export async function upsertRepository(
     {
       signals: snapshot.signals,
       repositories: nextRepositories,
-      draftPublications: snapshot.draftPublications ?? []
+      draftPublications: snapshot.draftPublications ?? [],
+      snapshotRefreshedAt: snapshot.snapshotRefreshedAt
     },
     resolvedPath
   );

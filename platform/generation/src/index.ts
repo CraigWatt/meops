@@ -17,6 +17,20 @@ interface RepoStory {
   themes: string[];
 }
 
+export interface SnapshotSignalSource {
+  repository: string;
+  kind: SignalEvent["kind"];
+  priority: SignalEvent["priority"];
+  summary: string;
+  timestamp: string;
+}
+
+export interface SnapshotXDraft {
+  draft: Draft;
+  sources: SnapshotSignalSource[];
+  sourceCount: number;
+}
+
 function normalizeLineBreaks(value: string): string {
   return value
     .replace(/\n{3,}/g, "\n\n")
@@ -285,6 +299,20 @@ function buildRepoStories(signals: DashboardSignal[], repositories: RepositoryCa
     .sort((left, right) => right.score - left.score || left.label.localeCompare(right.label));
 }
 
+function buildSnapshotSources(signals: DashboardSignal[], limit: number): SnapshotSignalSource[] {
+  return [...signals]
+    .slice()
+    .sort((left, right) => signalStrength(right) - signalStrength(left))
+    .slice(0, limit)
+    .map((signal) => ({
+      repository: signal.repository,
+      kind: signal.kind,
+      priority: signal.priority,
+      summary: signal.summary,
+      timestamp: signal.timestamp
+    }));
+}
+
 function renderRepoStories(stories: RepoStory[], themeCount: number): string {
   return stories
     .map((story) => `${story.label}: ${story.themes.slice(0, themeCount).join(" + ")}`)
@@ -392,7 +420,7 @@ export function buildSnapshotXDraft(
   signals: DashboardSignal[],
   repositories: RepositoryCatalogEntry[],
   options: SnapshotDraftOptions = {}
-): Draft {
+): SnapshotXDraft {
   const brandName = options.brandName ?? "meops";
   const maxLength = options.maxLength ?? 280;
   const publishableSignals = [...signals]
@@ -409,10 +437,14 @@ export function buildSnapshotXDraft(
   );
 
   return {
-    channel: "x",
-    title: `${headlineCase(brandName)} snapshot`,
-    body,
-    status: publishableSignals.length > 0 ? "needs_review" : "prepared"
+    draft: {
+      channel: "x",
+      title: `${headlineCase(brandName)} snapshot`,
+      body,
+      status: publishableSignals.length > 0 ? "needs_review" : "prepared"
+    },
+    sources: buildSnapshotSources([...signals].slice().sort((left, right) => signalStrength(right) - signalStrength(left)), 5),
+    sourceCount: signals.length
   };
 }
 
