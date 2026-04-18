@@ -31,58 +31,8 @@ export interface SignalStoreSnapshot {
 
 const defaultStorePath = resolve(process.cwd(), ".meops", "signals.json");
 
-const seedSignals: SignalRecord[] = [
-  {
-    id: "signal-001",
-    kind: "milestone",
-    summary: "Finished the first meops monorepo scaffold and published the initial PR.",
-    repository: "CraigWatt/meops",
-    timestamp: "2026-04-03T22:22:17Z",
-    priority: "high",
-    source: "manual"
-  },
-  {
-    id: "signal-002",
-    kind: "pull_request",
-    summary: "Added the first web dashboard shell for reviewing publishable moments.",
-    repository: "CraigWatt/meops",
-    timestamp: "2026-04-03T22:35:00Z",
-    priority: "medium",
-    source: "manual"
-  },
-  {
-    id: "signal-003",
-    kind: "commit",
-    summary: "Introduced shared signal and draft primitives for future automation.",
-    repository: "CraigWatt/meops",
-    timestamp: "2026-04-03T22:48:00Z",
-    priority: "low",
-    source: "manual"
-  }
-];
-
-const seedRepositories: RepositoryCatalogEntry[] = [
-  {
-    name: "meops",
-    fullName: "CraigWatt/meops",
-    url: "https://github.com/CraigWatt/meops",
-    description: "meops personal operations system",
-    defaultBranch: "main",
-    topics: ["automation", "content", "developer-experience"],
-    watched: true,
-    source: "manual",
-    discoveredAt: "2026-04-03T22:22:17Z",
-    lastSyncedAt: "2026-04-03T22:48:00Z",
-    signalCount: 3
-  }
-];
-
-function seedSnapshot(): SignalStoreSnapshot {
-  return {
-    signals: seedSignals,
-    repositories: seedRepositories,
-    draftPublications: []
-  };
+function emptySnapshot(): SignalStoreSnapshot {
+  return { signals: [], repositories: [] };
 }
 
 function resolveStorePath(storePath?: string): string {
@@ -198,7 +148,7 @@ export async function readSignalStore(storePath?: string): Promise<SignalStoreSn
     return normalizeSnapshot(JSON.parse(raw) as Partial<SignalStoreSnapshot>);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      return seedSnapshot();
+      return emptySnapshot();
     }
 
     throw error;
@@ -242,7 +192,7 @@ export async function getDashboardSignals(storePath?: string): Promise<Dashboard
 
 export async function getRepositoryCatalog(storePath?: string): Promise<RepositoryCatalogEntry[]> {
   const snapshot = await ensureSignalStore(storePath);
-  return (snapshot.repositories ?? seedRepositories).map(normalizeRepository);
+  return (snapshot.repositories ?? []).map(normalizeRepository);
 }
 
 export async function upsertRepository(
@@ -309,8 +259,7 @@ export async function appendSignal(
   const record = createSignalRecord(signal);
   const nextSnapshot: SignalStoreSnapshot = {
     signals: [...snapshot.signals, record],
-    repositories: snapshot.repositories ?? seedRepositories,
-    draftPublications: snapshot.draftPublications ?? []
+    repositories: snapshot.repositories ?? []
   };
 
   await writeSignalStore(nextSnapshot, resolvedPath);
@@ -337,8 +286,7 @@ export async function appendSignalIfMissing(
   const record = createSignalRecord(signal);
   const nextSnapshot: SignalStoreSnapshot = {
     signals: [...snapshot.signals, record],
-    repositories: snapshot.repositories ?? seedRepositories,
-    draftPublications: snapshot.draftPublications ?? []
+    repositories: snapshot.repositories ?? []
   };
 
   await writeSignalStore(nextSnapshot, resolvedPath);
@@ -380,7 +328,7 @@ export async function upsertDraftPublication(
   await writeSignalStore(
     {
       signals: snapshot.signals,
-      repositories: snapshot.repositories ?? seedRepositories,
+      repositories: snapshot.repositories ?? [],
       draftPublications: nextPublications
     },
     resolvedPath
