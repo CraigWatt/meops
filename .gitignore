@@ -8,4 +8,5 @@ build/
 .env
 .env.*
 !.env.example
-.meops/
+.meops/*
+!.meops/signals.json
