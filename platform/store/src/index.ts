@@ -32,7 +32,7 @@ export interface SignalStoreSnapshot {
 const defaultStorePath = resolve(process.cwd(), ".meops", "signals.json");
 
 function emptySnapshot(): SignalStoreSnapshot {
-  return { signals: [], repositories: [] };
+  return { signals: [], repositories: [], draftPublications: [] };
 }
 
 function resolveStorePath(storePath?: string): string {
@@ -259,7 +259,8 @@ export async function appendSignal(
   const record = createSignalRecord(signal);
   const nextSnapshot: SignalStoreSnapshot = {
     signals: [...snapshot.signals, record],
-    repositories: snapshot.repositories ?? []
+    repositories: snapshot.repositories ?? [],
+    draftPublications: snapshot.draftPublications ?? []
   };
 
   await writeSignalStore(nextSnapshot, resolvedPath);
@@ -286,7 +287,8 @@ export async function appendSignalIfMissing(
   const record = createSignalRecord(signal);
   const nextSnapshot: SignalStoreSnapshot = {
     signals: [...snapshot.signals, record],
-    repositories: snapshot.repositories ?? []
+    repositories: snapshot.repositories ?? [],
+    draftPublications: snapshot.draftPublications ?? []
   };
 
   await writeSignalStore(nextSnapshot, resolvedPath);
