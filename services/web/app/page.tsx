@@ -124,9 +124,19 @@ export default async function Home() {
             without pretending to be a live control panel.
           </p>
         </div>
-        <div className="status-badge">
-          <span className={`status-dot ${hasSyncedData ? "" : "status-dot--inactive"}`} />
-          <span>{hasSyncedData ? "Static snapshot" : "Waiting for sync"}</span>
+        <div className="header-actions">
+          <a
+            className="header-button"
+            href="https://github.com/CraigWatt/meops/actions/workflows/pages.yml"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Refresh snapshot
+          </a>
+          <div className="status-badge">
+            <span className={`status-dot ${hasSyncedData ? "" : "status-dot--inactive"}`} />
+            <span>{hasSyncedData ? "Static snapshot" : "Waiting for sync"}</span>
+          </div>
         </div>
       </header>
 

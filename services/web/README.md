@@ -4,8 +4,8 @@ This is the read-only dashboard surface for reviewing the latest synced
 snapshot of system status, active sources, prepared drafts, and publishable
 moments.
 
-It also includes an editable aggregate X handoff panel that points at the
-private GitHub Actions publish workflow.
+It also includes an editable aggregate X handoff panel and a refresh button
+that point at the private GitHub Actions workflows.
 
 For now, the web app is configured as a static export so it can be served from
 GitHub Pages during early development and testing.
