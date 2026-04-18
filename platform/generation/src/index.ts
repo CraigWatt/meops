@@ -36,6 +36,7 @@ interface RepoPromptSummary {
   repository: string;
   label: string;
   signalCount: number;
+  score: number;
   insight: string;
   strongestSignals: string[];
 }
@@ -81,19 +82,39 @@ function truncate(value: string, maxLength: number): string {
   return `${value.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
 }
 
+function cleanSignalSummary(summary: string): string {
+  return summary
+    .replace(/\s*@+\s*$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isMechanicalSignalSummary(summary: string): boolean {
+  const lowered = cleanSignalSummary(summary).toLowerCase();
+
+  return (
+    lowered === "sync meops snapshot" ||
+    lowered === "update readme.md" ||
+    lowered.startsWith("merge pull request") ||
+    lowered === "first commit" ||
+    lowered.includes("local env template")
+  );
+}
+
 function signalStrength(signal: DashboardSignal): number {
   const priorityScore =
     signal.priority === "high" ? 30 : signal.priority === "medium" ? 20 : 10;
   const kindScore =
     signal.kind === "release" ? 20 : signal.kind === "milestone" ? 16 : signal.kind === "commit" ? 12 : 8;
   const publishableScore = signal.publishable ? 15 : 0;
-  const summary = signal.summary.toLowerCase();
+  const summary = cleanSignalSummary(signal.summary).toLowerCase();
   const genericPenalty =
-    (summary.includes("first commit") ? 12 : 0) +
+    (summary.includes("first commit") ? 16 : 0) +
     (summary.includes("env template") ? 8 : 0) +
-    (summary.includes("readme") ? 6 : 0) +
+    (summary.includes("readme") ? 10 : 0) +
     (summary.includes("template") ? 4 : 0) +
-    (summary.startsWith("merge pull request") ? 2 : 0);
+    (summary === "sync meops snapshot" ? 12 : 0) +
+    (summary.startsWith("merge pull request") ? 8 : 0);
   const recencyScore = Math.max(
     0,
     12 - Math.min(12, Math.floor((Date.now() - new Date(signal.timestamp).getTime()) / 1000 / 60 / 60))
@@ -168,7 +189,7 @@ function normalizeThemeFragment(value: string): string {
 }
 
 function summarizeSignalTheme(signal: DashboardSignal): string {
-  const summary = signal.summary.trim();
+  const summary = cleanSignalSummary(signal.summary);
   const lowered = summary.toLowerCase();
 
   if (lowered.startsWith("merge pull request")) {
@@ -268,6 +289,121 @@ function summarizeSignalTheme(signal: DashboardSignal): string {
   return truncate(words.slice(0, 3).join(" "), 24) || "work";
 }
 
+function dedupeSignals(signals: DashboardSignal[]): DashboardSignal[] {
+  const seen = new Set<string>();
+
+  return signals.filter((signal) => {
+    const key = `${signal.repository}:${signal.kind}:${cleanSignalSummary(signal.summary).toLowerCase()}`;
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
+}
+
+function selectEditorialSignals(signals: DashboardSignal[], limit: number): DashboardSignal[] {
+  const deduped = dedupeSignals(signals);
+  const meaningful = deduped.filter((signal) => !isMechanicalSignalSummary(signal.summary));
+  const pool = meaningful.length > 0 ? meaningful : deduped;
+
+  return pool.slice(0, limit);
+}
+
+function describeRepoFocus(label: string, themes: string[], signals: DashboardSignal[]): string {
+  const loweredThemes = themes.map((theme) => theme.toLowerCase());
+  const cleanedSummaries = signals.map((signal) => cleanSignalSummary(signal.summary).toLowerCase());
+
+  if (signals.length === 0) {
+    return `${label} has lighter activity in the current snapshot.`;
+  }
+
+  if (signals.every((signal) => /^bump /i.test(cleanSignalSummary(signal.summary)))) {
+    return `${label} is mostly in release-maintenance mode, with dependency updates driving the visible work.`;
+  }
+
+  if (loweredThemes.includes("pages")) {
+    return `${label} is focused on deployment and GitHub Pages hardening in this window.`;
+  }
+
+  if (
+    loweredThemes.includes("scaffold") ||
+    loweredThemes.includes("foundation") ||
+    loweredThemes.includes("discovery") ||
+    loweredThemes.includes("signals") ||
+    loweredThemes.includes("drafts")
+  ) {
+    return `${label} is pushing foundational product and platform work forward, with the strongest activity clustered around core workflow improvements.`;
+  }
+
+  if (loweredThemes.includes("device packs") || loweredThemes.includes("hdr fallback")) {
+    return `${label} is centered on device coverage and playback-quality improvements, especially around pack definitions and HDR behavior.`;
+  }
+
+  if (loweredThemes.includes("brand")) {
+    return `${label} is spending this cycle on product presentation, brand polish, and launch-surface refinement.`;
+  }
+
+  if (loweredThemes.includes("readme")) {
+    return `${label} is quieter overall, with the visible work weighted toward documentation and profile hygiene.`;
+  }
+
+  if (loweredThemes.includes("ci")) {
+    return `${label} is focused on CI reliability and test-loop cleanup.`;
+  }
+
+  if (cleanedSummaries.some((summary) => summary.includes("magic link") || summary.includes("sign in"))) {
+    return `${label} is moving authentication forward, with sign-in flow work leading the current signal.`;
+  }
+
+  if (cleanedSummaries.some((summary) => summary.includes("github pages"))) {
+    return `${label} is leaning into deployment automation and release-surface reliability.`;
+  }
+
+  return themes.length > 0
+    ? `${label} is showing meaningful movement around ${themes.slice(0, 2).join(" and ")}.`
+    : `${label} is active in the current snapshot, with a mix of implementation and maintenance work.`;
+}
+
+function buildOverallPattern(repoSummaries: RepoPromptSummary[], repositoryCount: number): string {
+  if (repoSummaries.length === 0) {
+    return "No repository activity is available in the current snapshot.";
+  }
+
+  const topRepos = repoSummaries.slice(0, 3);
+  const labels = topRepos.map((summary) => summary.label);
+  const websiteFocused = repoSummaries.some(
+    (summary) =>
+      summary.repository.includes("craig-watt-website") &&
+      /release-maintenance mode|dependency updates/i.test(summary.insight)
+  );
+  const platformFocused = repoSummaries.some(
+    (summary) => summary.repository.includes("meops") && /foundational product and platform work/i.test(summary.insight)
+  );
+  const pagesFocusedCount = repoSummaries.filter((summary) => /GitHub Pages hardening|deployment/i.test(summary.insight)).length;
+
+  const patterns: string[] = [];
+
+  if (platformFocused) {
+    patterns.push("foundational platform work is still a major thread");
+  }
+
+  if (websiteFocused) {
+    patterns.push("release maintenance is highly visible through the website repo");
+  }
+
+  if (pagesFocusedCount >= 2) {
+    patterns.push("deployment and Pages hardening shows up across multiple repos");
+  }
+
+  if (patterns.length === 0) {
+    patterns.push("activity is spread across product work, release upkeep, and supporting repo maintenance");
+  }
+
+  return `Across ${repositoryCount} watched repos, ${patterns.join(", ")}. The strongest weight is in ${labels.join(", ")}.`;
+}
+
 function buildRepoStories(signals: DashboardSignal[], repositories: RepositoryCatalogEntry[]): RepoStory[] {
   const signalsByRepo = new Map<string, DashboardSignal[]>();
 
@@ -309,15 +445,15 @@ function buildRepoStories(signals: DashboardSignal[], repositories: RepositoryCa
 }
 
 function buildSnapshotSources(signals: DashboardSignal[], limit: number): SnapshotSignalSource[] {
-  return [...signals]
-    .slice()
-    .sort((left, right) => signalStrength(right) - signalStrength(left))
-    .slice(0, limit)
+  return selectEditorialSignals(
+    [...signals].slice().sort((left, right) => signalStrength(right) - signalStrength(left)),
+    limit
+  )
     .map((signal) => ({
       repository: signal.repository,
       kind: signal.kind,
       priority: signal.priority,
-      summary: signal.summary,
+      summary: cleanSignalSummary(signal.summary),
       timestamp: signal.timestamp
     }));
 }
@@ -340,40 +476,28 @@ function buildRepoPromptSummaries(
       const repoSignals = (signalsByRepo.get(repository.fullName) ?? signalsByRepo.get(repository.name) ?? [])
         .slice()
         .sort((left, right) => signalStrength(right) - signalStrength(left));
-      const themes = repoSignals
-        .slice(0, 3)
+      const editorialSignals = selectEditorialSignals(repoSignals, 3);
+      const themes = editorialSignals
         .map((signal) => summarizeSignalTheme(signal))
         .filter((theme, index, list) => theme && list.indexOf(theme) === index)
         .slice(0, 3);
-      const strongestSignals = repoSignals
-        .slice(0, 3)
-        .map((signal) => `${signal.kind}/${signal.priority}: ${signal.summary}`);
+      const strongestSignals = editorialSignals.map(
+        (signal) => `${signal.kind}/${signal.priority}: ${cleanSignalSummary(signal.summary)}`
+      );
       const label = normalizeRepoLabel(repository);
-
-      let insight = `${repoSignals.length} signals in scope`;
-      if (themes.length > 0) {
-        insight = `${insight}; main themes: ${themes.join(", ")}`;
-      }
-
-      if (repoSignals.every((signal) => /^bump /i.test(signal.summary))) {
-        insight = `${insight}. Most visible pattern: dependency/release churn.`;
-      } else if (repoSignals.some((signal) => /pages/i.test(signal.summary))) {
-        insight = `${insight}. Pages/deployment work is part of the current story.`;
-      } else if (repoSignals.some((signal) => /scaffold|foundation|integration/i.test(signal.summary))) {
-        insight = `${insight}. Foundational product or platform work is a key theme.`;
-      } else {
-        insight = `${insight}.`;
-      }
+      const insight = `${repoSignals.length} signals in scope. ${describeRepoFocus(label, themes, editorialSignals)}`;
+      const score = editorialSignals[0] ? signalStrength(editorialSignals[0]) : 0;
 
       return {
         repository: repository.fullName,
         label,
         signalCount: repoSignals.length,
+        score,
         insight,
         strongestSignals
       };
     })
-    .sort((left, right) => right.signalCount - left.signalCount || left.label.localeCompare(right.label));
+    .sort((left, right) => right.score - left.score || right.signalCount - left.signalCount || left.label.localeCompare(right.label));
 }
 
 function renderRepoStories(stories: RepoStory[], themeCount: number): string {
@@ -428,13 +552,16 @@ function composeSnapshotPrompt(
   sources: SnapshotSignalSource[],
   repoSummaries: RepoPromptSummary[]
 ): string {
+  const overallPattern = buildOverallPattern(repoSummaries, repositoryCount);
   const sourceLines = sources
     .map(
       (source) =>
         `- ${source.repository} · ${source.kind} · ${source.priority}: ${source.summary}`
     )
     .join("\n");
-  const repoLines = repoSummaries
+  const promptRepoSummaries = repoSummaries.slice(0, 7);
+  const hiddenRepoCount = Math.max(0, repoSummaries.length - promptRepoSummaries.length);
+  const repoLines = promptRepoSummaries
     .map(
       (summary) =>
         `- ${summary.repository}: ${summary.insight}\n  Strongest examples: ${summary.strongestSignals.join(" | ")}`
@@ -455,14 +582,19 @@ Snapshot context:
 - ${signalCount} signals tracked
 - ${publishableCount} ready to review
 
+Overall pattern:
+- ${overallPattern}
+
 Repository-by-repository view:
 ${repoLines || "- No repository summaries available."}
+${hiddenRepoCount > 0 ? `- ${hiddenRepoCount} additional repos have lighter-weight activity outside the top summary set.` : ""}
 
 Strongest source signals:
 ${sourceLines || "- No source signals available."}
 
 Instructions:
 - Include the actual insight, not just the event names. Explain what the work means in aggregate.
+- Use the overall pattern and repository summaries to explain why these signals matter, not just what happened.
 - Call out the dominant repo or theme if one area clearly outweighs the others.
 - Use the repository summaries to understand the shape of the work, not just the raw events.
 - Lead with the most important change or pattern.
