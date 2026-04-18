@@ -5,6 +5,9 @@ on:
     branches:
       - main
   pull_request:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -38,23 +41,31 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Refresh visibility snapshot
+        if: github.event_name != 'pull_request'
+        run: |
+          pnpm --filter @meops/worker build
+          node services/worker/dist/index.js
+        env:
+          MEOPS_GITHUB_TOKEN: ${{ secrets.MEOPS_GITHUB_TOKEN }}
+
       - name: Build web export
         run: pnpm --filter @meops/web build
         env:
           GITHUB_PAGES: "true"
 
       - name: Add Pages marker
-        if: github.event_name == 'push'
+        if: github.event_name != 'pull_request'
         run: touch services/web/out/.nojekyll
 
       - name: Upload Pages artifact
-        if: github.event_name == 'push'
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
         with:
           path: services/web/out
 
   deploy:
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request'
     needs: build
     environment:
       name: github-pages

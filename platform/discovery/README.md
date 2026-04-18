@@ -4,6 +4,7 @@ GitHub repository discovery and remote commit collection live here.
 
 This package lists accessible repositories from GitHub, fetches recent commits
 for each tracked repository, and converts them into meops signal candidates.
+GitHub discovery is the only supported path here; there is no local fallback.
 
 Discovery is driven by:
 

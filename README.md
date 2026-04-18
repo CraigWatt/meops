@@ -160,6 +160,12 @@ Recommended local setup:
 
 The token stays out of git because `.env` and `.env.*` are ignored.
 
+## Automation
+
+The GitHub Pages site refreshes from GitHub discovery through a scheduled
+GitHub Actions workflow. It uses the `MEOPS_GITHUB_TOKEN` secret to rebuild the
+repo catalog and signal snapshot before deploying the static dashboard.
+
 ## Next step
 
 The scaffold in this repo is intentionally minimal for now. The next good move is to choose the first stack and then generate the actual app, service, and shared package structure around it.

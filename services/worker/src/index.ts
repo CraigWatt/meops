@@ -2,9 +2,8 @@ import { isPublishableSignal } from "@meops/core";
 import { channelLabel } from "@meops/content";
 import { discoverRepositorySignals } from "@meops/discovery";
 import { appendSignalIfMissing, getDashboardSignals, upsertRepository } from "@meops/store";
-import { type ExtractedSignal, scanRepositoryForSignals } from "@meops/extraction";
+import { type ExtractedSignal } from "@meops/extraction";
 
-const repoPath = process.env.MEOPS_REPO_PATH ?? process.cwd();
 const storePath = process.env.MEOPS_STORE_PATH;
 const githubToken = process.env.GITHUB_TOKEN ?? process.env.MEOPS_GITHUB_TOKEN;
 const githubApiBaseUrl = process.env.MEOPS_GITHUB_API_BASE;
@@ -19,30 +18,17 @@ const repoAllowlist = process.env.MEOPS_REPO_ALLOWLIST?.split(",")
   .filter(Boolean);
 
 async function syncGitSignals() {
-  let extractedSignals: ExtractedSignal[] | undefined;
-  let mode: "github" | "local" = "local";
-
-  if (githubToken) {
-    try {
-      extractedSignals = await discoverRepositorySignals({
-        token: githubToken,
-        allowlist: repoAllowlist,
-        repoLimit: discoveryLimit,
-        commitLimit: githubCommitLimit,
-        apiBaseUrl: githubApiBaseUrl
-      });
-      mode = "github";
-    } catch (error) {
-      console.warn(
-        "meops worker GitHub discovery failed, falling back to local scan:",
-        error instanceof Error ? error.message : error
-      );
-    }
+  if (!githubToken) {
+    throw new Error("MEOPS_GITHUB_TOKEN is required; local scan fallback is disabled");
   }
 
-  if (!extractedSignals) {
-    extractedSignals = await scanRepositoryForSignals(repoPath, scanLimit);
-  }
+  const extractedSignals: ExtractedSignal[] = await discoverRepositorySignals({
+    token: githubToken,
+    allowlist: repoAllowlist,
+    repoLimit: discoveryLimit,
+    commitLimit: githubCommitLimit,
+    apiBaseUrl: githubApiBaseUrl
+  });
 
   let createdCount = 0;
   const seenRepositories = new Set<string>();
@@ -83,7 +69,7 @@ async function syncGitSignals() {
   return {
     candidateCount: extractedSignals.length,
     createdCount,
-    mode
+    mode: "github" as const
   };
 }
 
