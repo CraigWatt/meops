@@ -4,13 +4,15 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - ".meops/**"
   pull_request:
   schedule:
     - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -51,6 +53,17 @@ jobs:
           node services/worker/dist/index.js
         env:
           MEOPS_GITHUB_TOKEN: ${{ secrets.MEOPS_GITHUB_TOKEN }}
+
+      - name: Persist refreshed snapshot
+        if: github.event_name != 'pull_request'
+        run: |
+          if git status --short -- .meops/signals.json | grep -q .; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .meops/signals.json
+            git commit -m "Sync meops snapshot"
+            git push
+          fi
 
       - name: Build web export
         run: pnpm --filter @meops/web build
