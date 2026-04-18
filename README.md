@@ -2,13 +2,22 @@
 
 Turn work into signal.
 
-`meops` is a personal operations system that watches real engineering activity across your repos and turns it into public output:
+`meops` is a personal operations system that watches real engineering activity across your GitHub repos and turns it into reviewable public output.
 
-- X posts
-- LinkedIn posts
-- blog posts
-- project updates
-- portfolio and website content
+What it does today:
+
+- discovers public GitHub repos from a single token
+- tracks repo visibility in a central catalog
+- extracts meaningful commits and pull requests into signals
+- generates X and LinkedIn drafts for those signals
+- marks publishable material as `needs_review`
+- shows the current state in a static GitHub Pages dashboard
+
+What is intentionally out of scope for now:
+
+- direct posting to X or LinkedIn
+- blog generation and publishing
+- automated scheduling beyond the visibility refresh workflow
 
 The goal is simple:
 
@@ -16,7 +25,7 @@ The goal is simple:
 
 ## Why this exists
 
-Technical progress is often invisible by default. You can spend days improving architecture, fixing hard bugs, shipping infrastructure, or refining developer experience and still have very little public proof of that work.
+Engineering work is often invisible by default. You can spend days improving architecture, fixing hard bugs, shipping infrastructure, or refining developer experience and still have very little public proof of that work.
 
 `meops` exists to bridge that gap by:
 
@@ -25,132 +34,34 @@ Technical progress is often invisible by default. You can spend days improving a
 - framing it for different audiences
 - producing clean, reusable narrative from technical output
 
-## Monorepo shape
+## Current shape
 
-This repo follows the same high-level layout used in `vfo`:
+The repo is organized as a small monorepo:
 
-- `services/` for product and domain services
+- `services/` for runtime surfaces
 - `platform/` for shared capabilities and reusable building blocks
-- `infra/` for operational code, deployment, and automation
-- `tests/` for cross-cutting end-to-end checks
+- `infra/` for deployment and automation
+- `tests/` for cross-cutting checks
 
-Current service surfaces:
+Current implemented surfaces:
 
-- `services/api/` for the backend API
-- `services/worker/` for ingestion and generation jobs
-- `services/web/` for the review dashboard, statically exported to GitHub Pages
-- `platform/store/` for file-backed signal state and repository catalog data
-- `platform/extraction/` for turning git history into signal candidates
+- `services/web/` for the static review dashboard on GitHub Pages
+- `services/worker/` for GitHub discovery and signal refresh
+- `platform/store/` for file-backed signals and repository catalog data
 - `platform/discovery/` for GitHub repo discovery and remote commit collection
-- `platform/generation/` for channel-specific drafts, including the blog output for `craigwatt.co.uk`
+- `platform/extraction/` for turning git history into signal candidates
+- `platform/generation/` for X and LinkedIn draft generation
 
-### Suggested starting layout
+## Current workflow
 
-```text
-infra/
-platform/
-services/
-tests/
-```
+1. GitHub Actions runs the Pages refresh workflow.
+2. The worker discovers repos and refreshes the signal snapshot with `MEOPS_GITHUB_TOKEN`.
+3. The static web build reads that refreshed snapshot.
+4. The Pages site shows watched repos, signals, and draft review status.
 
-## Initial system sketch
+## Local setup
 
-The first pass of `meops` should probably split into these responsibilities:
-
-1. Ingest
-2. Interpret
-3. Generate
-4. Review
-5. Publish
-
-That maps nicely to a service-oriented monorepo:
-
-- a repo-watcher or event collector
-- a signal extraction pipeline
-- content generation helpers
-- a review/editing surface
-- publishing adapters for each outlet
-
-## Tech stack options
-
-### Option 1: Lean MVP
-
-Best if you want to move fast and keep the first version simple.
-
-- `pnpm` workspaces
-- TypeScript everywhere
-- `Turborepo` for task orchestration
-- Node.js worker services
-- SQLite for local state
-- PostgreSQL later if the data model grows
-- a small React or Next.js UI only when needed
-
-Why this works:
-
-- low setup overhead
-- easy local development
-- keeps the repo flexible while the product shape is still forming
-
-### Option 2: Productive default
-
-Best if you expect a dashboard, background workers, and integrations fairly early.
-
-- `pnpm` workspaces
-- TypeScript + React
-- Next.js for the web app
-- Fastify or Hono for APIs
-- BullMQ or a similar queue for async content jobs
-- PostgreSQL + Prisma or Drizzle
-- Redis for job coordination and caching
-
-Why this works:
-
-- clean separation between UI, API, and workers
-- good fit for an app that needs review queues and publishing workflows
-- scales well as the number of integrations grows
-
-### Option 3: More opinionated
-
-Best if you want a stronger product shell from day one.
-
-- `pnpm` workspaces
-- Next.js app router
-- a dedicated worker service
-- Postgres + Drizzle
-- object storage for artifacts and generated drafts
-- optional OpenAI-based content generation helpers
-
-Why this works:
-
-- easiest path to a polished front-end experience
-- good if the dashboard is part of the core product, not just an internal tool
-
-## Recommended direction
-
-For `meops`, I’d start with **Option 2**:
-
-- a web dashboard for reviewing signals and drafts
-- a worker pipeline for ingestion and generation
-- a shared library layer for content heuristics and formatting
-- PostgreSQL as the durable store once the shape hardens
-
-That gives us a real product foundation without overcommitting to infrastructure too early.
-
-## Product ideas
-
-Some useful first features:
-
-- GitHub repo discovery and allowlisting so meops knows which repos to watch
-- a read-only dashboard that shows active sources, prepared posts, and system status
-- commit and PR digesting into short “what changed / why it matters” summaries
-- repo milestone detection for meaningful releases or architecture shifts
-- audience-specific draft generation for X, LinkedIn, and blog posts
-- a reusable content memory of prior announcements and phrasing
-- a queue of “publishable moments” that can be reviewed before going public
-
-## Local environment
-
-Use [`.env.example`](./.env.example) as the local template for repo discovery and visibility sync.
+Use [`.env.example`](./.env.example) as the local template for discovery.
 
 Recommended local setup:
 
@@ -160,12 +71,6 @@ Recommended local setup:
 
 The token stays out of git because `.env` and `.env.*` are ignored.
 
-## Automation
-
-The GitHub Pages site refreshes from GitHub discovery through a scheduled
-GitHub Actions workflow. It uses the `MEOPS_GITHUB_TOKEN` secret to rebuild the
-repo catalog and signal snapshot before deploying the static dashboard.
-
 ## Next step
 
-The scaffold in this repo is intentionally minimal for now. The next good move is to choose the first stack and then generate the actual app, service, and shared package structure around it.
+The next likely slice is adding an explicit review/publish state for X and LinkedIn drafts, then wiring posting adapters only after that review flow is solid.
