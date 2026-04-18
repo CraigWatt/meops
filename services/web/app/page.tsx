@@ -82,11 +82,11 @@ export default async function Home() {
     return acc;
   }, {});
 
-  const channels: Array<{ key: "x" | "linkedin" | "blog" | "update_log"; icon: string }> = [
+  const channels: Array<{ key: "x" | "linkedin" | "blog" | "update-log"; icon: string }> = [
     { key: "x", icon: "𝕏" },
     { key: "linkedin", icon: "in" },
     { key: "blog", icon: "✎" },
-    { key: "update_log", icon: "◉" }
+    { key: "update-log", icon: "◉" }
   ];
 
   const latestSyncTime = orderedRepositories[0]?.lastSyncedAt;
