@@ -1,7 +1,6 @@
 import type { Draft, DraftChannel, SignalEvent } from "@meops/core";
 
 export interface DraftGenerationOptions {
-  blogBaseUrl?: string;
   brandName?: string;
 }
 
@@ -38,24 +37,6 @@ function signalAngle(signal: SignalEvent): string {
   return `A real engineering signal from ${signal.repository}.`;
 }
 
-function repositoryContext(signal: SignalEvent): string {
-  const parts: string[] = [];
-
-  if (signal.repositoryProfile?.language) {
-    parts.push(`Language: ${signal.repositoryProfile.language}`);
-  }
-
-  if (signal.repositoryProfile?.defaultBranch) {
-    parts.push(`Default branch: ${signal.repositoryProfile.defaultBranch}`);
-  }
-
-  if (signal.repositoryProfile?.topics?.length) {
-    parts.push(`Topics: ${signal.repositoryProfile.topics.join(", ")}`);
-  }
-
-  return parts.length > 0 ? parts.map((part) => `- ${part}`).join("\n") : "- Repository context not yet discovered.";
-}
-
 function buildXDraft(signal: SignalEvent, brandName: string): Draft {
   const body = normalizeLineBreaks(`
 ${signal.summary}
@@ -70,7 +51,8 @@ Built for ${brandName}.
   return {
     channel: "x",
     title: `${headlineCase(signal.kind)} update`,
-    body
+    body,
+    status: "prepared"
   };
 }
 
@@ -95,57 +77,8 @@ Prepared by ${brandName}.
   return {
     channel: "linkedin",
     title: `${headlineCase(signal.repository)} signal`,
-    body
-  };
-}
-
-function buildBlogDraft(signal: SignalEvent, blogBaseUrl: string, brandName: string): Draft {
-  const body = normalizeLineBreaks(`
-# ${headlineCase(signal.summary)}
-
-This update is a good example of how a small engineering change can become a
-clear public story.
-
-## What changed
-
-${signal.summary}
-
-## Why it matters
-
-${signalAngle(signal)}
-That kind of work is what tends to build momentum in a product over time.
-
-## Signal notes
-
-- Repository: ${signal.repository}
-- Kind: ${signal.kind}
-- Priority: ${signal.priority}
-${repositoryContext(signal)}
-
-Published for [${blogBaseUrl}](${blogBaseUrl}) via ${brandName}.
-  `);
-
-  return {
-    channel: "blog",
-    title: headlineCase(signal.summary),
-    body
-  };
-}
-
-function buildUpdateLogDraft(signal: SignalEvent, brandName: string): Draft {
-  const body = normalizeLineBreaks(`
-${signal.summary}
-
-Repository: ${signal.repository}
-Kind: ${signal.kind}
-Priority: ${signal.priority}
-Brand: ${brandName}
-  `);
-
-  return {
-    channel: "update-log",
-    title: `Update log: ${headlineCase(signal.kind)}`,
-    body
+    body,
+    status: "prepared"
   };
 }
 
@@ -153,14 +86,11 @@ export function buildDrafts(
   signal: SignalEvent,
   options: DraftGenerationOptions = {}
 ): Draft[] {
-  const blogBaseUrl = options.blogBaseUrl ?? "https://craigwatt.co.uk";
   const brandName = options.brandName ?? "meops";
 
   return [
     buildXDraft(signal, brandName),
-    buildLinkedInDraft(signal, brandName),
-    buildBlogDraft(signal, blogBaseUrl, brandName),
-    buildUpdateLogDraft(signal, brandName)
+    buildLinkedInDraft(signal, brandName)
   ];
 }
 

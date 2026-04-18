@@ -94,12 +94,7 @@ export default async function Home() {
 
     return accumulator;
   }, {});
-  const preparedChannels: Array<"x" | "linkedin" | "blog" | "update-log"> = [
-    "x",
-    "linkedin",
-    "blog",
-    "update-log"
-  ];
+  const preparedChannels: Array<"x" | "linkedin"> = ["x", "linkedin"];
   const preparedDraftsByChannel = preparedChannels.map((channel) => {
     const draft =
       signals
@@ -334,7 +329,7 @@ export default async function Home() {
               <div className="signal-meta">
                 <span className="status-pill status-pill--neutral">{channelLabel(channel)}</span>
                 <span className={`status-pill ${count > 0 ? "status-pill--positive" : "status-pill--muted"}`}>
-                  {count > 0 ? "ready" : "waiting"}
+                  {count > 0 ? draft?.status ?? "ready" : "waiting"}
                 </span>
                 <span className="status-pill status-pill--accent">{count} total</span>
               </div>
@@ -404,7 +399,7 @@ export default async function Home() {
                 <div className="draft-list">
                   {signal.drafts.map((draft) => (
                     <div key={`${signal.description}-${draft.channel}`} className="draft-chip">
-                      {channelLabel(draft.channel)}
+                      {channelLabel(draft.channel)} · {draft.status}
                     </div>
                   ))}
                 </div>
