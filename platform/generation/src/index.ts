@@ -32,6 +32,14 @@ export interface SnapshotXDraft {
   prompt: string;
 }
 
+interface RepoPromptSummary {
+  repository: string;
+  label: string;
+  signalCount: number;
+  insight: string;
+  strongestSignals: string[];
+}
+
 function normalizeLineBreaks(value: string): string {
   return value
     .replace(/\n{3,}/g, "\n\n")
@@ -314,6 +322,60 @@ function buildSnapshotSources(signals: DashboardSignal[], limit: number): Snapsh
     }));
 }
 
+function buildRepoPromptSummaries(
+  signals: DashboardSignal[],
+  repositories: RepositoryCatalogEntry[]
+): RepoPromptSummary[] {
+  const signalsByRepo = new Map<string, DashboardSignal[]>();
+
+  for (const signal of signals) {
+    const current = signalsByRepo.get(signal.repository) ?? [];
+    current.push(signal);
+    signalsByRepo.set(signal.repository, current);
+  }
+
+  return repositories
+    .filter((repository) => repository.watched)
+    .map((repository) => {
+      const repoSignals = (signalsByRepo.get(repository.fullName) ?? signalsByRepo.get(repository.name) ?? [])
+        .slice()
+        .sort((left, right) => signalStrength(right) - signalStrength(left));
+      const themes = repoSignals
+        .slice(0, 3)
+        .map((signal) => summarizeSignalTheme(signal))
+        .filter((theme, index, list) => theme && list.indexOf(theme) === index)
+        .slice(0, 3);
+      const strongestSignals = repoSignals
+        .slice(0, 3)
+        .map((signal) => `${signal.kind}/${signal.priority}: ${signal.summary}`);
+      const label = normalizeRepoLabel(repository);
+
+      let insight = `${repoSignals.length} signals in scope`;
+      if (themes.length > 0) {
+        insight = `${insight}; main themes: ${themes.join(", ")}`;
+      }
+
+      if (repoSignals.every((signal) => /^bump /i.test(signal.summary))) {
+        insight = `${insight}. Most visible pattern: dependency/release churn.`;
+      } else if (repoSignals.some((signal) => /pages/i.test(signal.summary))) {
+        insight = `${insight}. Pages/deployment work is part of the current story.`;
+      } else if (repoSignals.some((signal) => /scaffold|foundation|integration/i.test(signal.summary))) {
+        insight = `${insight}. Foundational product or platform work is a key theme.`;
+      } else {
+        insight = `${insight}.`;
+      }
+
+      return {
+        repository: repository.fullName,
+        label,
+        signalCount: repoSignals.length,
+        insight,
+        strongestSignals
+      };
+    })
+    .sort((left, right) => right.signalCount - left.signalCount || left.label.localeCompare(right.label));
+}
+
 function renderRepoStories(stories: RepoStory[], themeCount: number): string {
   return stories
     .map((story) => `${story.label}: ${story.themes.slice(0, themeCount).join(" + ")}`)
@@ -363,12 +425,19 @@ function composeSnapshotPrompt(
   repositoryCount: number,
   signalCount: number,
   publishableCount: number,
-  sources: SnapshotSignalSource[]
+  sources: SnapshotSignalSource[],
+  repoSummaries: RepoPromptSummary[]
 ): string {
   const sourceLines = sources
     .map(
       (source) =>
         `- ${source.repository} · ${source.kind} · ${source.priority}: ${source.summary}`
+    )
+    .join("\n");
+  const repoLines = repoSummaries
+    .map(
+      (summary) =>
+        `- ${summary.repository}: ${summary.insight}\n  Strongest examples: ${summary.strongestSignals.join(" | ")}`
     )
     .join("\n");
 
@@ -386,10 +455,16 @@ Snapshot context:
 - ${signalCount} signals tracked
 - ${publishableCount} ready to review
 
+Repository-by-repository view:
+${repoLines || "- No repository summaries available."}
+
 Strongest source signals:
 ${sourceLines || "- No source signals available."}
 
 Instructions:
+- Include the actual insight, not just the event names. Explain what the work means in aggregate.
+- Call out the dominant repo or theme if one area clearly outweighs the others.
+- Use the repository summaries to understand the shape of the work, not just the raw events.
 - Lead with the most important change or pattern.
 - Prefer a clean summary over a pile of repo names.
 - Keep the tone factual, confident, and compact.
@@ -475,14 +550,17 @@ export function buildSnapshotXDraft(
     stories,
     maxLength
   );
+  const sortedSignals = [...signals].slice().sort((left, right) => signalStrength(right) - signalStrength(left));
+  const sources = buildSnapshotSources(sortedSignals, 5);
+  const repoSummaries = buildRepoPromptSummaries(signals, repositories);
   const prompt = composeSnapshotPrompt(
     brandName,
     stories.length,
     signals.length,
     publishableSignals.length,
-    buildSnapshotSources([...signals].slice().sort((left, right) => signalStrength(right) - signalStrength(left)), 5)
+    sources,
+    repoSummaries
   );
-  const sources = buildSnapshotSources([...signals].slice().sort((left, right) => signalStrength(right) - signalStrength(left)), 5);
 
   return {
     draft: {

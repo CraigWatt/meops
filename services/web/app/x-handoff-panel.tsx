@@ -9,6 +9,7 @@ interface XHandoffPanelProps {
   promptBody: string;
   workflowUrl: string;
   repositoryCount: number;
+  repositoryOptions: string[];
   sourceCount: number;
   sources: SnapshotSignalSource[];
   draftCacheKey: string;
@@ -16,6 +17,15 @@ interface XHandoffPanelProps {
 
 const storageKeyPrefix = "meops-x-handoff-draft";
 const promptStorageKeyPrefix = "meops-x-handoff-prompt";
+const timeRangeOptions = [
+  { value: "day", label: "Last day" },
+  { value: "week", label: "Last week" },
+  { value: "month", label: "Last month" },
+  { value: "three-months", label: "Last 3 months" },
+  { value: "six-months", label: "Last 6 months" },
+  { value: "year", label: "Last year" },
+  { value: "all", label: "All signals" }
+] as const;
 
 function formatSourceLabel(source: SnapshotSignalSource): string {
   return `${source.repository} · ${source.kind} · ${source.priority}`;
@@ -27,6 +37,7 @@ export function XHandoffPanel({
   promptBody,
   workflowUrl,
   repositoryCount,
+  repositoryOptions,
   sourceCount,
   sources,
   draftCacheKey
@@ -36,12 +47,18 @@ export function XHandoffPanel({
   const [copied, setCopied] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [selectedTimeRange, setSelectedTimeRange] = useState<(typeof timeRangeOptions)[number]["value"]>("all");
+  const [selectedRepositories, setSelectedRepositories] = useState<string[]>(repositoryOptions);
   const storageKey = `${storageKeyPrefix}:${draftCacheKey}`;
   const promptStorageKey = `${promptStorageKeyPrefix}:${draftCacheKey}`;
 
   useEffect(() => {
     setHydrated(true);
   }, []);
+
+  useEffect(() => {
+    setSelectedRepositories(repositoryOptions);
+  }, [repositoryOptions]);
 
   useEffect(() => {
     if (!hydrated) {
@@ -103,6 +120,27 @@ export function XHandoffPanel({
     window.localStorage.removeItem(promptStorageKey);
     setPrompt(promptBody);
     setPromptCopied(false);
+  }
+
+  function generatePrompt() {
+    setPrompt(promptBody);
+    setPromptCopied(false);
+  }
+
+  function toggleRepository(repository: string) {
+    setSelectedRepositories((current) =>
+      current.includes(repository)
+        ? current.filter((candidate) => candidate !== repository)
+        : [...current, repository]
+    );
+  }
+
+  function selectAllRepositories() {
+    setSelectedRepositories(repositoryOptions);
+  }
+
+  function clearRepositories() {
+    setSelectedRepositories([]);
   }
 
   return (
@@ -194,6 +232,57 @@ export function XHandoffPanel({
           </div>
         </div>
 
+        <div className="prompt-controls">
+          <div className="prompt-control">
+            <label className="prompt-control-label" htmlFor="x-prompt-range">
+              Signal window
+            </label>
+            <select
+              id="x-prompt-range"
+              className="prompt-control-select"
+              value={selectedTimeRange}
+              onChange={(event) =>
+                setSelectedTimeRange(event.target.value as (typeof timeRangeOptions)[number]["value"])
+              }
+            >
+              {timeRangeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="prompt-control prompt-control--wide">
+            <div className="prompt-control-header">
+              <span className="prompt-control-label">Repositories</span>
+              <div className="prompt-control-actions">
+                <button type="button" className="action-button action-button--secondary" onClick={selectAllRepositories}>
+                  Select all
+                </button>
+                <button type="button" className="action-button action-button--secondary" onClick={clearRepositories}>
+                  Clear
+                </button>
+              </div>
+            </div>
+            <div className="prompt-repo-grid">
+              {repositoryOptions.map((repository) => {
+                const checked = selectedRepositories.includes(repository);
+                return (
+                  <label key={repository} className={`prompt-repo-option ${checked ? "prompt-repo-option--active" : ""}`}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleRepository(repository)}
+                    />
+                    <span>{repository}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
         <label className="sr-only" htmlFor="x-prompt-body">
           X prompt body
         </label>
@@ -206,6 +295,9 @@ export function XHandoffPanel({
         />
 
         <div className="draft-actions">
+          <button type="button" className="action-button" onClick={generatePrompt}>
+            Generate prompt
+          </button>
           <button type="button" className="action-button action-button--secondary" onClick={copyPrompt}>
             {promptCopied ? "Copied" : "Copy prompt"}
           </button>
@@ -215,8 +307,9 @@ export function XHandoffPanel({
         </div>
 
         <p className="draft-help">
-          This prompt is derived from the same source signals as the draft above. It stays X-specific so an AI can
-          help rewrite the post without losing the snapshot context.
+          This prompt is derived from the same source signals as the draft above. The time-range and repository
+          controls are foundation-only for now, so prompt generation still uses the full current snapshot until the
+          filtered generation path is wired up.
         </p>
       </div>
     </section>
