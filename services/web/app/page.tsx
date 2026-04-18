@@ -186,6 +186,7 @@ export default async function Home() {
         draftBody={xSnapshotDraft.draft.body}
         promptBody={xSnapshotDraft.prompt}
         repositoryCount={activeRepositories.length}
+        repositoryOptions={activeRepositories.map((repository) => repository.fullName)}
         sourceCount={xSnapshotDraft.sourceCount}
         sources={xSnapshotDraft.sources}
         draftCacheKey={xDraftCacheKey}
