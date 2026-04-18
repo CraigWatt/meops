@@ -4,9 +4,9 @@ This service is the background execution lane for meops. It now scans recent git
 commits, turns them into signal candidates, writes new records into the shared
 store, and prints publishable signals.
 
-If `GITHUB_TOKEN` or `MEOPS_GITHUB_TOKEN` is present, the worker can discover
-tracked repositories from GitHub and pull remote commit history instead of
-only scanning the current local checkout.
+If `GITHUB_TOKEN` or `MEOPS_GITHUB_TOKEN` is present, the worker discovers
+tracked repositories from GitHub and pulls remote commit history. This lane
+is token-only now; there is no local checkout fallback.
 
 Useful env vars:
 
