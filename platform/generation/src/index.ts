@@ -17,6 +17,21 @@ interface RepoStory {
   themes: string[];
 }
 
+export interface SnapshotSignalSource {
+  repository: string;
+  kind: SignalEvent["kind"];
+  priority: SignalEvent["priority"];
+  summary: string;
+  timestamp: string;
+}
+
+export interface SnapshotXDraft {
+  draft: Draft;
+  sources: SnapshotSignalSource[];
+  sourceCount: number;
+  prompt: string;
+}
+
 function normalizeLineBreaks(value: string): string {
   return value
     .replace(/\n{3,}/g, "\n\n")
@@ -285,6 +300,20 @@ function buildRepoStories(signals: DashboardSignal[], repositories: RepositoryCa
     .sort((left, right) => right.score - left.score || left.label.localeCompare(right.label));
 }
 
+function buildSnapshotSources(signals: DashboardSignal[], limit: number): SnapshotSignalSource[] {
+  return [...signals]
+    .slice()
+    .sort((left, right) => signalStrength(right) - signalStrength(left))
+    .slice(0, limit)
+    .map((signal) => ({
+      repository: signal.repository,
+      kind: signal.kind,
+      priority: signal.priority,
+      summary: signal.summary,
+      timestamp: signal.timestamp
+    }));
+}
+
 function renderRepoStories(stories: RepoStory[], themeCount: number): string {
   return stories
     .map((story) => `${story.label}: ${story.themes.slice(0, themeCount).join(" + ")}`)
@@ -327,6 +356,45 @@ function composeSnapshotBody(
   }
 
   return truncate(normalizeLineBreaks(`${introCompact}\n\n${renderRepoStories(remaining, 1)}`), maxLength);
+}
+
+function composeSnapshotPrompt(
+  brandName: string,
+  repositoryCount: number,
+  signalCount: number,
+  publishableCount: number,
+  sources: SnapshotSignalSource[]
+): string {
+  const sourceLines = sources
+    .map(
+      (source) =>
+        `- ${source.repository} · ${source.kind} · ${source.priority}: ${source.summary}`
+    )
+    .join("\n");
+
+  return normalizeLineBreaks(`
+You are writing an X post for ${brandName} based on a fresh meops snapshot.
+
+Goal:
+- Write one concise, human-sounding X post that summarizes the overall repo activity.
+- Keep it under 280 characters.
+- Make it feel specific, useful, and not like a raw list.
+- Mention the strongest signals, but avoid naming every repository unless it helps the narrative.
+
+Snapshot context:
+- ${repositoryCount} repos watched
+- ${signalCount} signals tracked
+- ${publishableCount} ready to review
+
+Strongest source signals:
+${sourceLines || "- No source signals available."}
+
+Instructions:
+- Lead with the most important change or pattern.
+- Prefer a clean summary over a pile of repo names.
+- Keep the tone factual, confident, and compact.
+- Return only the final X post text.
+  `);
 }
 
 function buildXDraft(signal: SignalEvent, brandName: string): Draft {
@@ -392,7 +460,7 @@ export function buildSnapshotXDraft(
   signals: DashboardSignal[],
   repositories: RepositoryCatalogEntry[],
   options: SnapshotDraftOptions = {}
-): Draft {
+): SnapshotXDraft {
   const brandName = options.brandName ?? "meops";
   const maxLength = options.maxLength ?? 280;
   const publishableSignals = [...signals]
@@ -407,12 +475,25 @@ export function buildSnapshotXDraft(
     stories,
     maxLength
   );
+  const prompt = composeSnapshotPrompt(
+    brandName,
+    stories.length,
+    signals.length,
+    publishableSignals.length,
+    buildSnapshotSources([...signals].slice().sort((left, right) => signalStrength(right) - signalStrength(left)), 5)
+  );
+  const sources = buildSnapshotSources([...signals].slice().sort((left, right) => signalStrength(right) - signalStrength(left)), 5);
 
   return {
-    channel: "x",
-    title: `${headlineCase(brandName)} snapshot`,
-    body,
-    status: publishableSignals.length > 0 ? "needs_review" : "prepared"
+    draft: {
+      channel: "x",
+      title: `${headlineCase(brandName)} snapshot`,
+      body,
+      status: publishableSignals.length > 0 ? "needs_review" : "prepared"
+    },
+    sources,
+    sourceCount: signals.length,
+    prompt
   };
 }
 

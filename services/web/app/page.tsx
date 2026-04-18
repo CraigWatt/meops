@@ -77,7 +77,7 @@ function formatPreview(text: string, length: number): string {
 export default async function Home() {
   const signals = await getDashboardSignals();
   const repositories = await getRepositoryCatalog();
-  const snapshot = await getSnapshotMetadata();
+  const snapshotMetadata = await getSnapshotMetadata();
 
   const orderedSignals = [...signals].sort(
     (left, right) => new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime()
@@ -113,7 +113,7 @@ export default async function Home() {
   ];
 
   const latestRepositorySyncTime = orderedRepositories[0]?.lastSyncedAt;
-  const latestSnapshotRefreshTime = snapshot.snapshotRefreshedAt;
+  const latestSnapshotRefreshTime = snapshotMetadata.snapshotRefreshedAt;
   const hasSyncedData = repositories.some((repo) => repo.lastSyncedAt || repo.source === "github_discovery");
   const snapshotState = formatSnapshotState(
     latestSnapshotRefreshTime,
@@ -121,6 +121,7 @@ export default async function Home() {
     repositories.length
   );
   const xSnapshotDraft = buildSnapshotXDraft(orderedSignals, orderedRepositories);
+  const xDraftCacheKey = latestSnapshotRefreshTime ?? latestRepositorySyncTime ?? "initial";
 
   return (
     <main className="page">
@@ -181,9 +182,13 @@ export default async function Home() {
       </div>
 
       <XHandoffPanel
-        draftTitle={xSnapshotDraft.title}
-        draftBody={xSnapshotDraft.body}
+        draftTitle={xSnapshotDraft.draft.title}
+        draftBody={xSnapshotDraft.draft.body}
+        promptBody={xSnapshotDraft.prompt}
         repositoryCount={activeRepositories.length}
+        sourceCount={xSnapshotDraft.sourceCount}
+        sources={xSnapshotDraft.sources}
+        draftCacheKey={xDraftCacheKey}
         workflowUrl="https://github.com/CraigWatt/meops/actions/workflows/publish-x.yml"
       />
 
