@@ -59,8 +59,8 @@ Current implemented surfaces:
 2. The worker discovers repos and refreshes the signal snapshot with `MEOPS_GITHUB_TOKEN`.
 3. The refreshed snapshot is committed back to `main` as `.meops/signals.json`.
 4. The static web build reads that refreshed snapshot.
-5. The Pages site shows watched repos, signals, and draft review status.
-6. Private publish requests move approved drafts to X or LinkedIn.
+5. The Pages site shows watched repos, signals, draft review status, and an editable aggregate X draft.
+6. The private GitHub Actions publish workflow can only be run by the repository owner.
 
 ## Local setup
 
@@ -80,6 +80,8 @@ For publish testing, add the X OAuth 1.0a secrets to GitHub or local env:
 - `MEOPS_X_CONSUMER_SECRET`
 - `MEOPS_X_ACCESS_TOKEN`
 - `MEOPS_X_ACCESS_TOKEN_SECRET`
+
+Use the `Publish X Draft` workflow in GitHub Actions to post the edited text.
 
 ## Next step
 

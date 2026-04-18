@@ -1,4 +1,11 @@
-import { isPublishableSignal, type Draft, type DraftChannel, type SignalEvent } from "@meops/core";
+import {
+  isPublishableSignal,
+  type DashboardSignal,
+  type Draft,
+  type DraftChannel,
+  type RepositoryCatalogEntry,
+  type SignalEvent
+} from "@meops/core";
 
 export interface DraftGenerationOptions {
   brandName?: string;
@@ -35,6 +42,21 @@ function signalAngle(signal: SignalEvent): string {
   }
 
   return `A real engineering signal from ${signal.repository}.`;
+}
+
+function truncate(value: string, maxLength: number): string {
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
+}
+
+function compactSignalSummary(signal: DashboardSignal): string {
+  const summary = signal.summary.replace(/\s+/g, " ").trim();
+  const preview = truncate(summary, 56);
+
+  return `${signal.repository} · ${signal.kind} · ${preview}`;
 }
 
 function buildXDraft(signal: SignalEvent, brandName: string): Draft {
@@ -89,6 +111,39 @@ export function buildDrafts(
   const brandName = options.brandName ?? "meops";
 
   return [buildXDraft(signal, brandName), buildLinkedInDraft(signal, brandName)];
+}
+
+export interface SnapshotDraftOptions {
+  brandName?: string;
+  maxLength?: number;
+  highlightCount?: number;
+}
+
+export function buildSnapshotXDraft(
+  signals: DashboardSignal[],
+  repositories: RepositoryCatalogEntry[],
+  options: SnapshotDraftOptions = {}
+): Draft {
+  const brandName = options.brandName ?? "meops";
+  const maxLength = options.maxLength ?? 280;
+  const highlightCount = options.highlightCount ?? 3;
+  const watchedRepositories = repositories.filter((repository) => repository.watched);
+  const publishableSignals = [...signals]
+    .filter((signal) => signal.publishable)
+    .sort((left, right) => new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime());
+  const highlights = publishableSignals.slice(0, highlightCount).map(compactSignalSummary);
+  const body = normalizeLineBreaks(`
+${brandName} snapshot: ${watchedRepositories.length} repos watched, ${signals.length} signals tracked, ${publishableSignals.length} ready to review.
+
+${highlights.length > 0 ? `Latest signals: ${highlights.join(" | ")}` : "Latest signals: no publishable moments in this snapshot yet."}
+  `);
+
+  return {
+    channel: "x",
+    title: `${headlineCase(brandName)} snapshot`,
+    body: truncate(body, maxLength),
+    status: publishableSignals.length > 0 ? "needs_review" : "prepared"
+  };
 }
 
 export function buildDraftForChannel(
