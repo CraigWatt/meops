@@ -1,4 +1,4 @@
-import { getDashboardSignals, getRepositoryCatalog } from "@meops/store";
+import { getDashboardSignals, getRepositoryCatalog, getSnapshotMetadata } from "@meops/store";
 import { channelLabel, formatDraft } from "@meops/content";
 import { buildSnapshotXDraft } from "@meops/generation";
 import { XHandoffPanel } from "./x-handoff-panel";
@@ -50,16 +50,24 @@ function formatRecency(timestamp?: string): string {
   return `${days}d ago`;
 }
 
-function formatSnapshotState(latestSyncTime?: string, repositoryCount?: number): string {
+function formatSnapshotState(
+  snapshotRefreshedAt?: string,
+  latestRepositorySyncAt?: string,
+  repositoryCount?: number
+): string {
   if (!repositoryCount) {
     return "no synced snapshot yet";
   }
 
-  if (!latestSyncTime) {
+  if (!snapshotRefreshedAt && !latestRepositorySyncAt) {
     return "snapshot not yet refreshed";
   }
 
-  return `synced ${formatRecency(latestSyncTime)} · ${formatTimestamp(latestSyncTime)}`;
+  if (snapshotRefreshedAt) {
+    return `refreshed ${formatRecency(snapshotRefreshedAt)} · ${formatTimestamp(snapshotRefreshedAt)}`;
+  }
+
+  return `synced ${formatRecency(latestRepositorySyncAt)} · ${formatTimestamp(latestRepositorySyncAt)}`;
 }
 
 function formatPreview(text: string, length: number): string {
@@ -69,6 +77,7 @@ function formatPreview(text: string, length: number): string {
 export default async function Home() {
   const signals = await getDashboardSignals();
   const repositories = await getRepositoryCatalog();
+  const snapshot = await getSnapshotMetadata();
 
   const orderedSignals = [...signals].sort(
     (left, right) => new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime()
@@ -103,9 +112,14 @@ export default async function Home() {
     { key: "update-log", icon: "◉" }
   ];
 
-  const latestSyncTime = orderedRepositories[0]?.lastSyncedAt;
+  const latestRepositorySyncTime = orderedRepositories[0]?.lastSyncedAt;
+  const latestSnapshotRefreshTime = snapshot.snapshotRefreshedAt;
   const hasSyncedData = repositories.some((repo) => repo.lastSyncedAt || repo.source === "github_discovery");
-  const snapshotState = formatSnapshotState(latestSyncTime, repositories.length);
+  const snapshotState = formatSnapshotState(
+    latestSnapshotRefreshTime,
+    latestRepositorySyncTime,
+    repositories.length
+  );
   const xSnapshotDraft = buildSnapshotXDraft(orderedSignals, orderedRepositories);
 
   return (
@@ -159,7 +173,9 @@ export default async function Home() {
         </div>
         <div className="stat-card">
           <span className="stat-label">Snapshot</span>
-          <span className="stat-value">{formatRecency(latestSyncTime)}</span>
+          <span className="stat-value">
+            {formatRecency(latestSnapshotRefreshTime ?? latestRepositorySyncTime)}
+          </span>
           <span className="stat-detail">{snapshotState}</span>
         </div>
       </div>
