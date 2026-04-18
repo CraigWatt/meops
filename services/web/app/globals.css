@@ -110,12 +110,12 @@ h1, h2, h3, h4 {
   margin-bottom: 1rem;
 }
 
-.logo::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  background: var(--accent);
-  border-radius: 2px;
+.logo-mark {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  box-shadow: var(--shadow-sm);
 }
 
 h1 {

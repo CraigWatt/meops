@@ -113,7 +113,10 @@ export default async function Home() {
       {/* Header */}
       <header className="header">
         <div className="header-content">
-          <div className="logo">meops</div>
+          <div className="logo">
+            <img className="logo-mark" src="logo.jpg" alt="meops" />
+            <span>meops</span>
+          </div>
           <h1>Turn work into signal</h1>
           <p className="tagline">
             Static snapshot of repository activity, refreshed by GitHub Actions when
