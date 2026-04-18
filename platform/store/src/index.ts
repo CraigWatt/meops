@@ -74,7 +74,9 @@ const seedRepositories: RepositoryCatalogEntry[] = [
 ];
 
 function resolveStorePath(storePath?: string): string {
-  return resolve(storePath ?? defaultStorePath);
+  const configuredStorePath = process.env.MEOPS_STORE_PATH;
+
+  return resolve(storePath ?? configuredStorePath ?? defaultStorePath);
 }
 
 function normalizeSignal(signal: SignalRecord): DashboardSignal {
