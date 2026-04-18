@@ -184,6 +184,7 @@ export default async function Home() {
       <XHandoffPanel
         draftTitle={xSnapshotDraft.draft.title}
         draftBody={xSnapshotDraft.draft.body}
+        promptBody={xSnapshotDraft.prompt}
         repositoryCount={activeRepositories.length}
         sourceCount={xSnapshotDraft.sourceCount}
         sources={xSnapshotDraft.sources}

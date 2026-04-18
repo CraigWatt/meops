@@ -369,6 +369,10 @@ h1 {
   margin-bottom: 2rem;
 }
 
+.x-handoff-card__subsection {
+  margin-top: 1rem;
+}
+
 .card-header {
   display: flex;
   align-items: flex-start;

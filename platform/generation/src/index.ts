@@ -29,6 +29,7 @@ export interface SnapshotXDraft {
   draft: Draft;
   sources: SnapshotSignalSource[];
   sourceCount: number;
+  prompt: string;
 }
 
 function normalizeLineBreaks(value: string): string {
@@ -357,6 +358,45 @@ function composeSnapshotBody(
   return truncate(normalizeLineBreaks(`${introCompact}\n\n${renderRepoStories(remaining, 1)}`), maxLength);
 }
 
+function composeSnapshotPrompt(
+  brandName: string,
+  repositoryCount: number,
+  signalCount: number,
+  publishableCount: number,
+  sources: SnapshotSignalSource[]
+): string {
+  const sourceLines = sources
+    .map(
+      (source) =>
+        `- ${source.repository} · ${source.kind} · ${source.priority}: ${source.summary}`
+    )
+    .join("\n");
+
+  return normalizeLineBreaks(`
+You are writing an X post for ${brandName} based on a fresh meops snapshot.
+
+Goal:
+- Write one concise, human-sounding X post that summarizes the overall repo activity.
+- Keep it under 280 characters.
+- Make it feel specific, useful, and not like a raw list.
+- Mention the strongest signals, but avoid naming every repository unless it helps the narrative.
+
+Snapshot context:
+- ${repositoryCount} repos watched
+- ${signalCount} signals tracked
+- ${publishableCount} ready to review
+
+Strongest source signals:
+${sourceLines || "- No source signals available."}
+
+Instructions:
+- Lead with the most important change or pattern.
+- Prefer a clean summary over a pile of repo names.
+- Keep the tone factual, confident, and compact.
+- Return only the final X post text.
+  `);
+}
+
 function buildXDraft(signal: SignalEvent, brandName: string): Draft {
   const body = normalizeLineBreaks(`
 ${signal.summary}
@@ -435,6 +475,14 @@ export function buildSnapshotXDraft(
     stories,
     maxLength
   );
+  const prompt = composeSnapshotPrompt(
+    brandName,
+    stories.length,
+    signals.length,
+    publishableSignals.length,
+    buildSnapshotSources([...signals].slice().sort((left, right) => signalStrength(right) - signalStrength(left)), 5)
+  );
+  const sources = buildSnapshotSources([...signals].slice().sort((left, right) => signalStrength(right) - signalStrength(left)), 5);
 
   return {
     draft: {
@@ -443,8 +491,9 @@ export function buildSnapshotXDraft(
       body,
       status: publishableSignals.length > 0 ? "needs_review" : "prepared"
     },
-    sources: buildSnapshotSources([...signals].slice().sort((left, right) => signalStrength(right) - signalStrength(left)), 5),
-    sourceCount: signals.length
+    sources,
+    sourceCount: signals.length,
+    prompt
   };
 }
 

@@ -6,6 +6,7 @@ import { type SnapshotSignalSource } from "@meops/generation";
 interface XHandoffPanelProps {
   draftTitle: string;
   draftBody: string;
+  promptBody: string;
   workflowUrl: string;
   repositoryCount: number;
   sourceCount: number;
@@ -14,6 +15,7 @@ interface XHandoffPanelProps {
 }
 
 const storageKeyPrefix = "meops-x-handoff-draft";
+const promptStorageKeyPrefix = "meops-x-handoff-prompt";
 
 function formatSourceLabel(source: SnapshotSignalSource): string {
   return `${source.repository} · ${source.kind} · ${source.priority}`;
@@ -22,6 +24,7 @@ function formatSourceLabel(source: SnapshotSignalSource): string {
 export function XHandoffPanel({
   draftTitle,
   draftBody,
+  promptBody,
   workflowUrl,
   repositoryCount,
   sourceCount,
@@ -29,9 +32,12 @@ export function XHandoffPanel({
   draftCacheKey
 }: XHandoffPanelProps) {
   const [body, setBody] = useState(draftBody);
+  const [prompt, setPrompt] = useState(promptBody);
   const [copied, setCopied] = useState(false);
+  const [promptCopied, setPromptCopied] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const storageKey = `${storageKeyPrefix}:${draftCacheKey}`;
+  const promptStorageKey = `${promptStorageKeyPrefix}:${draftCacheKey}`;
 
   useEffect(() => {
     setHydrated(true);
@@ -51,8 +57,25 @@ export function XHandoffPanel({
       return;
     }
 
+    const saved = window.localStorage.getItem(promptStorageKey);
+    setPrompt(saved ?? promptBody);
+  }, [hydrated, promptBody, promptStorageKey]);
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
     window.localStorage.setItem(storageKey, body);
   }, [body, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    window.localStorage.setItem(promptStorageKey, prompt);
+  }, [hydrated, prompt, promptStorageKey]);
 
   const trimmedBody = body.trim();
   const characterCount = useMemo(() => trimmedBody.length, [trimmedBody]);
@@ -64,10 +87,22 @@ export function XHandoffPanel({
     window.setTimeout(() => setCopied(false), 1500);
   }
 
+  async function copyPrompt() {
+    await navigator.clipboard.writeText(prompt.trim());
+    setPromptCopied(true);
+    window.setTimeout(() => setPromptCopied(false), 1500);
+  }
+
   function resetDraft() {
     window.localStorage.removeItem(storageKey);
     setBody(draftBody);
     setCopied(false);
+  }
+
+  function resetPrompt() {
+    window.localStorage.removeItem(promptStorageKey);
+    setPrompt(promptBody);
+    setPromptCopied(false);
   }
 
   return (
@@ -142,6 +177,46 @@ export function XHandoffPanel({
         <p className="draft-help">
           Paste the edited text into the workflow dispatch input, then run it from your GitHub account. The post
           will only publish if the workflow is started by the repository owner.
+        </p>
+      </div>
+
+      <div className="card x-handoff-card__subsection">
+        <div className="card-header">
+          <div>
+            <h3 className="card-title">AI prompt handoff</h3>
+            <p className="card-description">
+              Copy this prompt into an AI of your choice if you want a second pass that rewrites the X post from the
+              same snapshot signals.
+            </p>
+          </div>
+          <div className="tags">
+            <span className="tag tag--accent">Prompt generator</span>
+          </div>
+        </div>
+
+        <label className="sr-only" htmlFor="x-prompt-body">
+          X prompt body
+        </label>
+        <textarea
+          id="x-prompt-body"
+          className="draft-textarea"
+          value={prompt}
+          onChange={(event) => setPrompt(event.target.value)}
+          spellCheck
+        />
+
+        <div className="draft-actions">
+          <button type="button" className="action-button action-button--secondary" onClick={copyPrompt}>
+            {promptCopied ? "Copied" : "Copy prompt"}
+          </button>
+          <button type="button" className="action-button action-button--secondary" onClick={resetPrompt}>
+            Reset prompt
+          </button>
+        </div>
+
+        <p className="draft-help">
+          This prompt is derived from the same source signals as the draft above. It stays X-specific so an AI can
+          help rewrite the post without losing the snapshot context.
         </p>
       </div>
     </section>
