@@ -48,6 +48,18 @@ function formatRecency(timestamp?: string): string {
   return `${days}d ago`;
 }
 
+function formatSnapshotState(latestSyncTime?: string, repositoryCount?: number): string {
+  if (!repositoryCount) {
+    return "no synced snapshot yet";
+  }
+
+  if (!latestSyncTime) {
+    return "snapshot not yet refreshed";
+  }
+
+  return `synced ${formatRecency(latestSyncTime)} · ${formatTimestamp(latestSyncTime)}`;
+}
+
 function formatPreview(text: string, length: number): string {
   return text.length > length ? `${text.slice(0, length)}...` : text;
 }
@@ -90,7 +102,8 @@ export default async function Home() {
   ];
 
   const latestSyncTime = orderedRepositories[0]?.lastSyncedAt;
-  const isOperational = repositories.length > 0;
+  const hasSyncedData = repositories.some((repo) => repo.lastSyncedAt || repo.source === "github_discovery");
+  const snapshotState = formatSnapshotState(latestSyncTime, repositories.length);
 
   return (
     <main className="page">
@@ -100,13 +113,14 @@ export default async function Home() {
           <div className="logo">meops</div>
           <h1>Turn work into signal</h1>
           <p className="tagline">
-            Watches your repositories, extracts meaningful moments, and prepares
-            publishable drafts for X and LinkedIn without asking for constant attention.
+            Static snapshot of repository activity, refreshed by GitHub Actions when
+            the worker runs. It prepares publishable drafts for X and LinkedIn
+            without pretending to be a live control panel.
           </p>
         </div>
         <div className="status-badge">
-          <span className={`status-dot ${isOperational ? "" : "status-dot--inactive"}`} />
-          <span>{isOperational ? "Operational" : "Warming up"}</span>
+          <span className={`status-dot ${hasSyncedData ? "" : "status-dot--inactive"}`} />
+          <span>{hasSyncedData ? "Static snapshot" : "Waiting for sync"}</span>
         </div>
       </header>
 
@@ -120,7 +134,7 @@ export default async function Home() {
         <div className="stat-card">
           <span className="stat-label">Signals</span>
           <span className="stat-value">{signals.length}</span>
-          <span className="stat-detail">{publishableSignals.length} ready to publish</span>
+          <span className="stat-detail">{publishableSignals.length} ready to review</span>
         </div>
         <div className="stat-card">
           <span className="stat-label">Drafts</span>
@@ -128,9 +142,9 @@ export default async function Home() {
           <span className="stat-detail">across {channels.length} channels</span>
         </div>
         <div className="stat-card">
-          <span className="stat-label">Last sync</span>
+          <span className="stat-label">Snapshot</span>
           <span className="stat-value">{formatRecency(latestSyncTime)}</span>
-          <span className="stat-detail">{formatTimestamp(latestSyncTime)}</span>
+          <span className="stat-detail">{snapshotState}</span>
         </div>
       </div>
 
@@ -158,7 +172,7 @@ export default async function Home() {
       <section className="section">
         <div className="section-header">
           <h2 className="section-title">Signals to Review</h2>
-          <span className="section-meta">{signals.length} queued</span>
+          <span className="section-meta">{signals.length} queued in the current snapshot</span>
         </div>
         {orderedSignals.length > 0 ? (
           <div className="signal-list">
@@ -199,8 +213,8 @@ export default async function Home() {
           </div>
         ) : (
           <div className="empty-state">
-            <p className="empty-state-title">No signals yet</p>
-            <p>Waiting for repository activity to generate signals.</p>
+            <p className="empty-state-title">No synced signals yet</p>
+            <p>Waiting for the next GitHub Actions refresh to build a real snapshot.</p>
           </div>
         )}
       </section>
@@ -209,7 +223,7 @@ export default async function Home() {
       <section className="section">
         <div className="section-header">
           <h2 className="section-title">Watched Repositories</h2>
-          <span className="section-meta">{activeRepositories.length} active</span>
+          <span className="section-meta">{activeRepositories.length} active in snapshot</span>
         </div>
         {activeRepositories.length > 0 ? (
           <div className="cards-grid">
@@ -249,8 +263,8 @@ export default async function Home() {
           </div>
         ) : (
           <div className="empty-state">
-            <p className="empty-state-title">No repositories yet</p>
-            <p>Add a GitHub token to start discovering repositories.</p>
+            <p className="empty-state-title">No repositories in snapshot</p>
+            <p>The dashboard will populate after the next discovery refresh.</p>
           </div>
         )}
       </section>
@@ -258,10 +272,10 @@ export default async function Home() {
       {/* Draft previews */}
       {publishableSignals.length > 0 && (
         <section className="section">
-          <div className="section-header">
-            <h2 className="section-title">Latest Drafts</h2>
-            <span className="section-meta">{publishableSignals.length} publishable</span>
-          </div>
+        <div className="section-header">
+          <h2 className="section-title">Latest Drafts</h2>
+          <span className="section-meta">{publishableSignals.length} publishable in snapshot</span>
+        </div>
           <div className="cards-grid cards-grid--two">
             {publishableSignals.slice(0, 2).map((signal) => {
               const xDraft = signal.drafts.find((d) => d.channel === "x");
@@ -313,12 +327,16 @@ export default async function Home() {
             "File Store",
             "Static Export",
             "GitHub Pages"
-          ].map((item) => (
+        ].map((item) => (
             <span key={item} className="stack-item">
               {item}
             </span>
           ))}
         </div>
+        <p className="stack-note">
+          This dashboard is a static Pages build. Freshness depends on the latest
+          GitHub Actions refresh, not a live browser session.
+        </p>
       </section>
     </main>
   );
