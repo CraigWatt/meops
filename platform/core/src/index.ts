@@ -2,6 +2,7 @@ export type SignalKind = "commit" | "pull_request" | "release" | "milestone";
 export type SignalPriority = "low" | "medium" | "high";
 export type SignalSource = "manual" | "git_commit";
 export type DraftChannel = "x" | "linkedin" | "blog" | "update-log";
+export type DraftStatus = "prepared" | "needs_review" | "approved" | "published";
 
 export interface RepositoryProfile {
   name: string;
@@ -52,6 +53,7 @@ export interface Draft {
   channel: DraftChannel;
   title: string;
   body: string;
+  status: DraftStatus;
 }
 
 export interface DashboardSignal extends SignalEvent {
