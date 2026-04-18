@@ -94,12 +94,20 @@ export default async function Home() {
 
     return accumulator;
   }, {});
-  const preparedChannels: Array<"x" | "linkedin" | "blog" | "update-log"> = [
-    "x",
-    "linkedin",
-    "blog",
-    "update-log"
+  const draftStatuses: Array<"prepared" | "needs_review" | "approved" | "published"> = [
+    "prepared",
+    "needs_review",
+    "approved",
+    "published"
   ];
+  const draftStatusCounts = signals.reduce<Record<string, number>>((accumulator, signal) => {
+    for (const draft of signal.drafts) {
+      accumulator[draft.status] = (accumulator[draft.status] ?? 0) + 1;
+    }
+
+    return accumulator;
+  }, {});
+  const preparedChannels: Array<"x" | "linkedin"> = ["x", "linkedin"];
   const preparedDraftsByChannel = preparedChannels.map((channel) => {
     const draft =
       signals
@@ -124,6 +132,10 @@ export default async function Home() {
     return age >= 0 && age < 1000 * 60 * 60 * 24;
   });
   const preparedChannelCount = preparedDraftsByChannel.filter(({ count }) => count > 0).length;
+  const preparedStatusCards = draftStatuses.map((status) => ({
+    status,
+    count: draftStatusCounts[status] ?? 0
+  }));
 
   const repositoryGroups = [
     {
@@ -324,9 +336,16 @@ export default async function Home() {
         <div className="panel-header">
           <div>
             <p className="section-kicker">Publishing</p>
-            <h2>Prepared posts</h2>
+            <h2>X and LinkedIn drafts</h2>
           </div>
-          <span>{preparedDraftsByChannel.length} channels prepared</span>
+          <span>{preparedDraftsByChannel.length} channels tracked</span>
+        </div>
+        <div className="draft-list">
+          {preparedStatusCards.map(({ status, count }) => (
+            <div key={status} className="draft-chip">
+              {status} · {count}
+            </div>
+          ))}
         </div>
         <div className="signal-grid">
           {preparedDraftsByChannel.map(({ channel, draft, count }) => (
