@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "@meops/core": "workspace:*",
+    "@meops/publishing": "workspace:*",
     "@meops/store": "workspace:*"
   },
   "scripts": {

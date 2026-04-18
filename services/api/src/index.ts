@@ -1,6 +1,13 @@
 import { createServer } from "node:http";
 
-import { appendSignal, getDashboardSignals, upsertDraftPublication } from "@meops/store";
+import { publishDraft } from "@meops/publishing";
+import {
+  appendSignal,
+  getDashboardSignalById,
+  getDashboardSignals,
+  getDraftPublication,
+  upsertDraftPublication
+} from "@meops/store";
 
 type CreateSignalPayload = {
   kind?: "commit" | "pull_request" | "release" | "milestone";
@@ -168,18 +175,55 @@ const server = createServer((request, response) => {
           return;
         }
 
-        const nextStatus = url.pathname === "/drafts/approve" ? "approved" : "published";
+        const signalId = payload.signalId;
+        const channel = payload.channel;
 
-        void upsertDraftPublication(payload.signalId, payload.channel, nextStatus, storePath)
-          .then((publication) => {
+        const handleDraftAction = async (): Promise<void> => {
+          if (url.pathname === "/drafts/approve") {
+            const publication = await upsertDraftPublication(signalId, channel, "approved", storePath);
+
             sendJson(response, 200, { publication });
-          })
-          .catch((error: unknown) => {
-            sendJson(response, 500, {
-              error: "draft_status_update_failed",
-              message: error instanceof Error ? error.message : "unknown error"
+            return;
+          }
+
+          const publication = await getDraftPublication(signalId, channel, storePath);
+          if (!publication || publication.status !== "approved") {
+            sendJson(response, 409, {
+              error: "draft_not_approved",
+              message: "drafts must be approved before publishing"
             });
+            return;
+          }
+
+          const signal = await getDashboardSignalById(signalId, storePath);
+          const draft = signal?.drafts.find((candidate) => candidate.channel === channel);
+
+          if (!signal || !draft) {
+            sendJson(response, 404, {
+              error: "draft_not_found",
+              message: "signal or draft was not found"
+            });
+            return;
+          }
+
+          const delivery = await publishDraft(draft);
+          const nextPublication = await upsertDraftPublication(signalId, channel, "published", storePath, {
+            actor: delivery.provider,
+            externalId: delivery.externalId
           });
+
+          sendJson(response, 200, {
+            publication: nextPublication,
+            delivery
+          });
+        };
+
+        void handleDraftAction().catch((error: unknown) => {
+          sendJson(response, 500, {
+            error: "draft_status_update_failed",
+            message: error instanceof Error ? error.message : "unknown error"
+          });
+        });
       } catch {
         sendJson(response, 400, {
           error: "invalid_json",

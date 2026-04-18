@@ -10,6 +10,7 @@ This directory contains shared platform components used by multiple services.
 - Git-history signal extraction under `platform/extraction/`
 - GitHub repo discovery and remote commit collection under `platform/discovery/`
 - Channel-specific draft generation under `platform/generation/`
+- Channel-specific publish adapters under `platform/publishing/`
 
 ## Tests
 

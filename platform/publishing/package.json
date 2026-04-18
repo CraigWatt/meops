@@ -1,0 +1,19 @@
+{
+  "name": "@meops/publishing",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "dependencies": {
+    "@meops/core": "workspace:*"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "echo 'no lint configured yet'",
+    "test": "echo 'no tests configured yet'",
+    "clean": "rm -rf dist"
+  }
+}

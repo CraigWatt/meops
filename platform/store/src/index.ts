@@ -166,6 +166,30 @@ function findDraftPublication(
   );
 }
 
+export async function getDraftPublication(
+  signalId: string,
+  channel: DraftChannel,
+  storePath?: string
+): Promise<DraftPublicationRecord | undefined> {
+  const snapshot = await ensureSignalStore(storePath);
+  return findDraftPublication(snapshot, signalId, channel);
+}
+
+export async function getDashboardSignalById(
+  signalId: string,
+  storePath?: string
+): Promise<DashboardSignal | undefined> {
+  const snapshot = await ensureSignalStore(storePath);
+  const publications = new Map<string, DraftPublicationRecord>();
+
+  for (const publication of snapshot.draftPublications) {
+    publications.set(publicationKey(publication.signalId, publication.channel), publication);
+  }
+
+  const signal = snapshot.signals.find((candidate) => candidate.id === signalId);
+  return signal ? normalizeSignal(signal, publications) : undefined;
+}
+
 export async function readSignalStore(storePath?: string): Promise<SignalStoreSnapshot> {
   const resolvedPath = resolveStorePath(storePath);
 

@@ -47,6 +47,12 @@ importers:
         specifier: workspace:*
         version: link:../core
 
+  platform/publishing:
+    dependencies:
+      '@meops/core':
+        specifier: workspace:*
+        version: link:../core
+
   platform/store:
     dependencies:
       '@meops/core':
@@ -61,6 +67,9 @@ importers:
       '@meops/core':
         specifier: workspace:*
         version: link:../../platform/core
+      '@meops/publishing':
+        specifier: workspace:*
+        version: link:../../platform/publishing
       '@meops/store':
         specifier: workspace:*
         version: link:../../platform/store

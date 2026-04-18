@@ -12,10 +12,10 @@ What it does today:
 - generates X and LinkedIn drafts for those signals
 - marks publishable material as `needs_review`
 - shows the current state in a static GitHub Pages dashboard
+- exposes a private publish gate for approved drafts
 
 What is intentionally out of scope for now:
 
-- direct posting to X or LinkedIn
 - blog generation and publishing
 - automated scheduling beyond the visibility refresh workflow
 
@@ -51,6 +51,7 @@ Current implemented surfaces:
 - `platform/discovery/` for GitHub repo discovery and remote commit collection
 - `platform/extraction/` for turning git history into signal candidates
 - `platform/generation/` for X and LinkedIn draft generation
+- `platform/publishing/` for X and LinkedIn publish adapters
 
 ## Current workflow
 
@@ -58,6 +59,7 @@ Current implemented surfaces:
 2. The worker discovers repos and refreshes the signal snapshot with `MEOPS_GITHUB_TOKEN`.
 3. The static web build reads that refreshed snapshot.
 4. The Pages site shows watched repos, signals, and draft review status.
+5. Private publish requests move approved drafts to X or LinkedIn.
 
 ## Local setup
 
@@ -73,4 +75,4 @@ The token stays out of git because `.env` and `.env.*` are ignored.
 
 ## Next step
 
-The next likely slice is adding an explicit review/publish state for X and LinkedIn drafts, then wiring posting adapters only after that review flow is solid.
+The next likely slice is tightening the private publish workflow and adding any remaining channel-specific polish around X and LinkedIn output.
