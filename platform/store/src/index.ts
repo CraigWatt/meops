@@ -3,6 +3,9 @@ import { dirname, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 
 import {
+  type DraftChannel,
+  type DraftPublicationRecord,
+  type DraftStatus,
   type DashboardSignal,
   type RepositoryCatalogEntry,
   type RepositoryProfile,
@@ -23,6 +26,7 @@ export interface SignalRecord extends SignalEvent {
 export interface SignalStoreSnapshot {
   signals: SignalRecord[];
   repositories: RepositoryCatalogEntry[];
+  draftPublications: DraftPublicationRecord[];
 }
 
 const defaultStorePath = resolve(process.cwd(), ".meops", "signals.json");
@@ -73,18 +77,50 @@ const seedRepositories: RepositoryCatalogEntry[] = [
   }
 ];
 
+function seedSnapshot(): SignalStoreSnapshot {
+  return {
+    signals: seedSignals,
+    repositories: seedRepositories,
+    draftPublications: []
+  };
+}
+
 function resolveStorePath(storePath?: string): string {
   const configuredStorePath = process.env.MEOPS_STORE_PATH;
 
   return resolve(storePath ?? configuredStorePath ?? defaultStorePath);
 }
 
-function normalizeSignal(signal: SignalRecord): DashboardSignal {
+function publicationKey(signalId: string, channel: DraftChannel): string {
+  return `${signalId}:${channel}`;
+}
+
+function normalizeSnapshot(snapshot: Partial<SignalStoreSnapshot>): SignalStoreSnapshot {
+  return {
+    signals: snapshot.signals ?? [],
+    repositories: snapshot.repositories ?? [],
+    draftPublications: snapshot.draftPublications ?? []
+  };
+}
+
+function normalizeSignal(
+  signal: SignalRecord,
+  publications: Map<string, DraftPublicationRecord>
+): DashboardSignal {
+  const drafts = buildDrafts(signal).map((draft) => {
+    const publication = publications.get(publicationKey(signal.id, draft.channel));
+
+    return {
+      ...draft,
+      status: publication?.status ?? draft.status
+    };
+  });
+
   return {
     ...signal,
     description: describeSignal(signal),
     publishable: isPublishableSignal(signal),
-    drafts: buildDrafts(signal),
+    drafts,
     source: signal.source ?? "manual",
     sourceId: signal.sourceId,
     repositoryProfile: signal.repositoryProfile
@@ -120,15 +156,25 @@ function findSignalBySourceId(snapshot: SignalStoreSnapshot, sourceId: string): 
   return snapshot.signals.find((signal) => signal.sourceId === sourceId);
 }
 
+function findDraftPublication(
+  snapshot: SignalStoreSnapshot,
+  signalId: string,
+  channel: DraftChannel
+): DraftPublicationRecord | undefined {
+  return snapshot.draftPublications.find(
+    (publication) => publication.signalId === signalId && publication.channel === channel
+  );
+}
+
 export async function readSignalStore(storePath?: string): Promise<SignalStoreSnapshot> {
   const resolvedPath = resolveStorePath(storePath);
 
   try {
     const raw = await readFile(resolvedPath, "utf8");
-    return JSON.parse(raw) as SignalStoreSnapshot;
+    return normalizeSnapshot(JSON.parse(raw) as Partial<SignalStoreSnapshot>);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      return { signals: seedSignals, repositories: seedRepositories };
+      return seedSnapshot();
     }
 
     throw error;
@@ -161,7 +207,13 @@ export async function ensureSignalStore(storePath?: string): Promise<SignalStore
 
 export async function getDashboardSignals(storePath?: string): Promise<DashboardSignal[]> {
   const snapshot = await ensureSignalStore(storePath);
-  return snapshot.signals.map(normalizeSignal);
+  const publications = new Map<string, DraftPublicationRecord>();
+
+  for (const publication of snapshot.draftPublications) {
+    publications.set(publicationKey(publication.signalId, publication.channel), publication);
+  }
+
+  return snapshot.signals.map((signal) => normalizeSignal(signal, publications));
 }
 
 export async function getRepositoryCatalog(storePath?: string): Promise<RepositoryCatalogEntry[]> {
@@ -215,7 +267,8 @@ export async function upsertRepository(
   await writeSignalStore(
     {
       signals: snapshot.signals,
-      repositories: nextRepositories
+      repositories: nextRepositories,
+      draftPublications: snapshot.draftPublications ?? []
     },
     resolvedPath
   );
@@ -232,11 +285,12 @@ export async function appendSignal(
   const record = createSignalRecord(signal);
   const nextSnapshot: SignalStoreSnapshot = {
     signals: [...snapshot.signals, record],
-    repositories: snapshot.repositories ?? seedRepositories
+    repositories: snapshot.repositories ?? seedRepositories,
+    draftPublications: snapshot.draftPublications ?? []
   };
 
   await writeSignalStore(nextSnapshot, resolvedPath);
-  return normalizeSignal(record);
+  return normalizeSignal(record, new Map<string, DraftPublicationRecord>());
 }
 
 export async function appendSignalIfMissing(
@@ -250,7 +304,7 @@ export async function appendSignalIfMissing(
     const existing = findSignalBySourceId(snapshot, signal.sourceId);
     if (existing) {
       return {
-        signal: normalizeSignal(existing),
+        signal: normalizeSignal(existing, new Map<string, DraftPublicationRecord>()),
         created: false
       };
     }
@@ -259,12 +313,54 @@ export async function appendSignalIfMissing(
   const record = createSignalRecord(signal);
   const nextSnapshot: SignalStoreSnapshot = {
     signals: [...snapshot.signals, record],
-    repositories: snapshot.repositories ?? seedRepositories
+    repositories: snapshot.repositories ?? seedRepositories,
+    draftPublications: snapshot.draftPublications ?? []
   };
 
   await writeSignalStore(nextSnapshot, resolvedPath);
   return {
-    signal: normalizeSignal(record),
+    signal: normalizeSignal(record, new Map<string, DraftPublicationRecord>()),
     created: true
   };
+}
+
+export async function upsertDraftPublication(
+  signalId: string,
+  channel: DraftChannel,
+  status: DraftStatus,
+  storePath?: string,
+  options: {
+    actor?: string;
+    externalId?: string;
+  } = {}
+): Promise<DraftPublicationRecord> {
+  const resolvedPath = resolveStorePath(storePath);
+  const snapshot = await ensureSignalStore(resolvedPath);
+  const now = new Date().toISOString();
+  const existing = findDraftPublication(snapshot, signalId, channel);
+  const nextPublication: DraftPublicationRecord = {
+    signalId,
+    channel,
+    status,
+    updatedAt: now,
+    actor: options.actor ?? existing?.actor,
+    externalId: options.externalId ?? existing?.externalId
+  };
+
+  const nextPublications = existing
+    ? snapshot.draftPublications.map((publication) =>
+        publication.signalId === signalId && publication.channel === channel ? nextPublication : publication
+      )
+    : [...snapshot.draftPublications, nextPublication];
+
+  await writeSignalStore(
+    {
+      signals: snapshot.signals,
+      repositories: snapshot.repositories ?? seedRepositories,
+      draftPublications: nextPublications
+    },
+    resolvedPath
+  );
+
+  return nextPublication;
 }
