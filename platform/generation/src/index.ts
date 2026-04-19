@@ -587,11 +587,20 @@ function composeSnapshotPrompt(
   const tone =
     channel === "linkedin"
       ? "Keep it professional, specific, and slightly more explanatory than X."
-      : "Keep it under 280 characters and make it feel specific, useful, and not like a raw list.";
+      : "Keep it well under 280 characters, ideally around 240-260 characters, and make it feel specific, useful, and not like a raw list.";
   const ending =
     channel === "linkedin"
       ? "Return only the final LinkedIn post text."
       : "Return only the final X post text.";
+  const xBudget = channel === "x"
+    ? `
+Character budget:
+- Hard limit: 280 characters including spaces and punctuation.
+- Target length: 240-260 characters.
+- If the draft runs long, shorten it before returning.
+- Prefer one tight paragraph or one to two short sentences.
+`
+    : "";
 
   return normalizeLineBreaks(`
 You are writing a ${platformName} for ${brandName} based on a fresh meops snapshot.
@@ -600,6 +609,7 @@ Goal:
 - ${goal}
 - ${tone}
 - Mention the strongest signals, but avoid naming every repository unless it helps the narrative.
+${xBudget}
 
 Snapshot context:
 - ${repositoryCount} repos watched
@@ -624,6 +634,7 @@ Instructions:
 - Lead with the most important change or pattern.
 - Prefer a clean summary over a pile of repo names.
 - Keep the tone factual, confident, and compact.
+- ${channel === "x" ? "Before returning, check the character count and trim the result until it is 280 characters or fewer." : ""}
 - ${channel === "linkedin" ? "Prefer 2-4 short paragraphs or a compact paragraph with a closing line." : "Write with enough specificity to feel grounded while staying concise."}
 - ${ending}
   `);

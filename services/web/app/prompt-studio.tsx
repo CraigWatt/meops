@@ -496,7 +496,7 @@ export function PromptStudio({
         <PromptCard
           id="x-prompt-generator"
           title="X prompt generator"
-          description="Copy this prompt into an AI if you want a concise X draft grounded in the current snapshot."
+          description="Copy this prompt into an AI if you want a concise X draft grounded in the current snapshot and capped at 280 characters."
           prompt={xPrompt}
           copied={copiedPrompt === "x"}
           onPromptChange={setXPrompt}
