@@ -1,20 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { type SnapshotSignalSource } from "@meops/generation";
+import {
+  buildSnapshotPrompts,
+  type SnapshotSignalSource
+} from "@meops/generation";
+import type { DashboardSignal, RepositoryCatalogEntry } from "@meops/core";
 
 interface PromptStudioProps {
-  xPromptBody: string;
-  linkedinPromptBody: string;
-  repositoryCount: number;
-  repositoryOptions: string[];
-  sourceCount: number;
-  sources: SnapshotSignalSource[];
+  signals: DashboardSignal[];
+  repositories: RepositoryCatalogEntry[];
   promptCacheKey: string;
 }
 
-const storageKeyPrefix = "meops-prompt-studio";
-const promptStorageKeyPrefix = "meops-prompt-studio-prompt";
+const storageKeyPrefix = "meops-prompt-studio-v2";
+const promptStorageKeyPrefix = "meops-prompt-studio-prompt-v2";
 const timeRangeOptions = [
   { value: "day", label: "Last day" },
   { value: "week", label: "Last week" },
@@ -35,6 +35,15 @@ const promptWorkflowFiles: Record<TimeRange, string> = {
   "six-months": "generate-prompts-six-months.yml",
   year: "generate-prompts-year.yml",
   all: "generate-prompts.yml"
+};
+
+const timeRangeCutoffs: Partial<Record<Exclude<TimeRange, "all">, number>> = {
+  day: 1,
+  week: 7,
+  month: 30,
+  "three-months": 90,
+  "six-months": 180,
+  year: 365
 };
 
 function formatSourceLabel(source: SnapshotSignalSource): string {
@@ -88,10 +97,35 @@ function buildScopedPrompt(
 Prompt scope:
 - Time window selected in the UI: ${selectedTimeRangeLabel}
 - Repository selection: ${selectedRepositoryLabel}
-- Note: these controls are foundation-only for now; the prompt still starts from the full current snapshot below.
+- The prompt preview below is generated from that selected scope.
 
 ${basePrompt}
   `);
+}
+
+function getTimeRangeCutoff(selectedTimeRange: TimeRange): number | null {
+  if (selectedTimeRange === "all") {
+    return null;
+  }
+
+  const days = timeRangeCutoffs[selectedTimeRange];
+  return typeof days === "number" ? Date.now() - days * 24 * 60 * 60 * 1000 : null;
+}
+
+function filterSignalsByScope(
+  signals: DashboardSignal[],
+  selectedTimeRange: TimeRange,
+  selectedRepositories: string[]
+): DashboardSignal[] {
+  const selectedRepositorySet = new Set(selectedRepositories);
+  const cutoff = getTimeRangeCutoff(selectedTimeRange);
+
+  return signals.filter((signal) => {
+    const inRepositoryScope =
+      selectedRepositories.length === 0 ? false : selectedRepositorySet.has(signal.repository);
+    const inTimeScope = cutoff === null ? true : new Date(signal.timestamp).getTime() >= cutoff;
+    return inRepositoryScope && inTimeScope;
+  });
 }
 
 interface PromptCardProps {
@@ -153,16 +187,16 @@ function PromptCard({
 }
 
 export function PromptStudio({
-  xPromptBody,
-  linkedinPromptBody,
-  repositoryCount,
-  repositoryOptions,
-  sourceCount,
-  sources,
+  signals,
+  repositories,
   promptCacheKey
 }: PromptStudioProps) {
-  const [xPrompt, setXPrompt] = useState(xPromptBody);
-  const [linkedinPrompt, setLinkedInPrompt] = useState(linkedinPromptBody);
+  const repositoryOptions = useMemo(
+    () => repositories.filter((repository) => repository.watched).map((repository) => repository.fullName),
+    [repositories]
+  );
+  const [xPrompt, setXPrompt] = useState("");
+  const [linkedinPrompt, setLinkedInPrompt] = useState("");
   const [copiedPrompt, setCopiedPrompt] = useState<"x" | "linkedin" | null>(null);
   const [copiedScope, setCopiedScope] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -178,36 +212,6 @@ export function PromptStudio({
   useEffect(() => {
     setHydrated(true);
   }, []);
-
-  useEffect(() => {
-    if (!hydrated) {
-      return;
-    }
-
-    const saved = window.localStorage.getItem(promptStorageKey);
-    if (!saved) {
-      setXPrompt(buildScopedPrompt(xPromptBody, selectedTimeRange, selectedRepositories, repositoryOptions));
-      setLinkedInPrompt(buildScopedPrompt(linkedinPromptBody, selectedTimeRange, selectedRepositories, repositoryOptions));
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(saved) as { x?: string; linkedin?: string };
-      setXPrompt(
-        parsed.x ??
-          buildScopedPrompt(xPromptBody, selectedTimeRange, selectedRepositories, repositoryOptions)
-      );
-      setLinkedInPrompt(
-        parsed.linkedin ??
-          buildScopedPrompt(linkedinPromptBody, selectedTimeRange, selectedRepositories, repositoryOptions)
-      );
-    } catch {
-      setXPrompt(buildScopedPrompt(xPromptBody, selectedTimeRange, selectedRepositories, repositoryOptions));
-      setLinkedInPrompt(
-        buildScopedPrompt(linkedinPromptBody, selectedTimeRange, selectedRepositories, repositoryOptions)
-      );
-    }
-  }, [hydrated, linkedinPromptBody, promptStorageKey, repositoryOptions, selectedRepositories, selectedTimeRange, xPromptBody]);
 
   useEffect(() => {
     if (!hydrated) {
@@ -279,11 +283,67 @@ export function PromptStudio({
     timeRangeOptions.find((option) => option.value === selectedTimeRange)?.label ?? "All time";
   const selectedWorkflowFile = promptWorkflowFiles[selectedTimeRange];
   const selectedWorkflowUrl = `https://github.com/CraigWatt/meops/actions/workflows/${selectedWorkflowFile}`;
+  const scopedSignals = useMemo(
+    () => filterSignalsByScope(signals, selectedTimeRange, selectedRepositories),
+    [selectedRepositories, selectedTimeRange, signals]
+  );
+  const scopedRepositories = useMemo(
+    () => repositories.filter((repository) => selectedRepositories.includes(repository.fullName)),
+    [repositories, selectedRepositories]
+  );
+  const scopedPrompts = useMemo(
+    () => buildSnapshotPrompts(scopedSignals, scopedRepositories),
+    [scopedRepositories, scopedSignals]
+  );
+  const scopedRepositoryCount = scopedRepositories.length;
+  const scopedSourceCount = scopedSignals.length;
+  const nextXPrompt = useMemo(
+    () =>
+      buildScopedPrompt(
+        scopedPrompts.x.prompt,
+        selectedTimeRange,
+        selectedRepositories,
+        repositoryOptions
+      ),
+    [repositoryOptions, scopedPrompts.x.prompt, selectedRepositories, selectedTimeRange]
+  );
+  const nextLinkedInPrompt = useMemo(
+    () =>
+      buildScopedPrompt(
+        scopedPrompts.linkedin.prompt,
+        selectedTimeRange,
+        selectedRepositories,
+        repositoryOptions
+      ),
+    [repositoryOptions, scopedPrompts.linkedin.prompt, selectedRepositories, selectedTimeRange]
+  );
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    const saved = window.localStorage.getItem(promptStorageKey);
+    if (!saved) {
+      setXPrompt(nextXPrompt);
+      setLinkedInPrompt(nextLinkedInPrompt);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(saved) as { x?: string; linkedin?: string };
+      setXPrompt(parsed.x ?? nextXPrompt);
+      setLinkedInPrompt(parsed.linkedin ?? nextLinkedInPrompt);
+    } catch {
+      setXPrompt(nextXPrompt);
+      setLinkedInPrompt(nextLinkedInPrompt);
+    }
+  }, [hydrated, nextLinkedInPrompt, nextXPrompt, promptStorageKey]);
 
   function resetPrompts() {
     window.localStorage.removeItem(promptStorageKey);
-    setXPrompt(xPromptBody);
-    setLinkedInPrompt(linkedinPromptBody);
+    setXPrompt(nextXPrompt);
+    setLinkedInPrompt(nextLinkedInPrompt);
     setCopiedPrompt(null);
   }
 
@@ -327,13 +387,14 @@ export function PromptStudio({
           <div>
             <h3 className="card-title">Snapshot prompt controls</h3>
             <p className="card-description">
-              Choose a signal window and repository scope, then open the prompt workflow in GitHub. The controls are
-              foundation-only for now, but the selected scope is carried into the prompt text as editorial guidance.
+              Choose a signal window and repository scope, then open the matching workflow in GitHub. The prompt
+              preview below is generated from the selected scope, and the copied repository list can be pasted into
+              the workflow input for the same selection.
             </p>
           </div>
           <div className="tags">
-            <span className="tag tag--accent">{repositoryCount} repos</span>
-            <span className="tag tag--accent">{sourceCount} signals</span>
+            <span className="tag tag--accent">{scopedRepositoryCount} repos</span>
+            <span className="tag tag--accent">{scopedSourceCount} signals</span>
           </div>
         </div>
 
@@ -401,8 +462,8 @@ export function PromptStudio({
         <p className="draft-help">
           Current scope: {promptContext.timeRange} · {promptContext.repositories}. The workflow button opens
           <code>{selectedWorkflowFile}</code> in GitHub Actions, where you can run the matching prompt job manually
-          for now. Paste the copied repository scope into the workflow&apos;s <code>repository_scope</code> input when
-          you want the run narrowed to selected repos.
+          for now. Paste the copied repository scope into the workflow&apos;s <code>repository_scope</code> input to
+          make the workflow match the selected repos.
         </p>
 
         <p className="draft-help">
@@ -412,14 +473,14 @@ export function PromptStudio({
         <div className="draft-provenance">
           <div className="draft-provenance-header">
             <span className="draft-help">
-              Derived from {sourceCount} signals across {repositoryCount} repos
+              Derived from {scopedSourceCount} signals across {scopedRepositoryCount} repos
             </span>
-            {sourceCount > sources.length && (
-              <span className="draft-help">+{sourceCount - sources.length} more signals</span>
+            {scopedSourceCount > scopedPrompts.x.sources.length && (
+              <span className="draft-help">+{scopedSourceCount - scopedPrompts.x.sources.length} more signals</span>
             )}
           </div>
           <div className="draft-provenance-list">
-            {sources.map((source) => (
+            {scopedPrompts.x.sources.map((source) => (
               <div key={`${source.repository}-${source.timestamp}-${source.summary}`} className="draft-provenance-item">
                 <span className="tag tag--accent">{formatSourceLabel(source)}</span>
                 <span className="draft-provenance-summary" title={source.summary}>
@@ -441,7 +502,7 @@ export function PromptStudio({
           onPromptChange={setXPrompt}
           onCopy={() => copyPrompt("x", xPrompt)}
           onReset={() => {
-            setXPrompt(xPromptBody);
+            setXPrompt(nextXPrompt);
             setCopiedPrompt(null);
           }}
         />
@@ -455,7 +516,7 @@ export function PromptStudio({
           onPromptChange={setLinkedInPrompt}
           onCopy={() => copyPrompt("linkedin", linkedinPrompt)}
           onReset={() => {
-            setLinkedInPrompt(linkedinPromptBody);
+            setLinkedInPrompt(nextLinkedInPrompt);
             setCopiedPrompt(null);
           }}
         />
