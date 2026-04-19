@@ -66,6 +66,14 @@ function buildRepositorySelectionLabel(selectedRepositories: string[], repositor
   return `${selectedRepositories.slice(0, 3).join(", ")}, +${selectedRepositories.length - 3} more`;
 }
 
+function buildWorkflowRepositoryScope(selectedRepositories: string[], repositoryOptions: string[]): string {
+  if (selectedRepositories.length === 0 || selectedRepositories.length === repositoryOptions.length) {
+    return "all watched repositories";
+  }
+
+  return selectedRepositories.join(", ");
+}
+
 function buildScopedPrompt(
   basePrompt: string,
   selectedTimeRange: TimeRange,
@@ -156,10 +164,15 @@ export function PromptStudio({
   const [xPrompt, setXPrompt] = useState(xPromptBody);
   const [linkedinPrompt, setLinkedInPrompt] = useState(linkedinPromptBody);
   const [copiedPrompt, setCopiedPrompt] = useState<"x" | "linkedin" | null>(null);
+  const [copiedScope, setCopiedScope] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>("all");
   const [selectedRepositories, setSelectedRepositories] = useState<string[]>(repositoryOptions);
-  const promptStorageKey = `${promptStorageKeyPrefix}:${promptCacheKey}`;
+  const scopeKey = useMemo(
+    () => `${selectedTimeRange}:${selectedRepositories.slice().sort().join("|") || "none"}`,
+    [selectedRepositories, selectedTimeRange]
+  );
+  const promptStorageKey = `${promptStorageKeyPrefix}:${promptCacheKey}:${scopeKey}`;
   const selectionStorageKey = `${storageKeyPrefix}:${promptCacheKey}:selection`;
 
   useEffect(() => {
@@ -173,20 +186,28 @@ export function PromptStudio({
 
     const saved = window.localStorage.getItem(promptStorageKey);
     if (!saved) {
-      setXPrompt(xPromptBody);
-      setLinkedInPrompt(linkedinPromptBody);
+      setXPrompt(buildScopedPrompt(xPromptBody, selectedTimeRange, selectedRepositories, repositoryOptions));
+      setLinkedInPrompt(buildScopedPrompt(linkedinPromptBody, selectedTimeRange, selectedRepositories, repositoryOptions));
       return;
     }
 
     try {
       const parsed = JSON.parse(saved) as { x?: string; linkedin?: string };
-      setXPrompt(parsed.x ?? xPromptBody);
-      setLinkedInPrompt(parsed.linkedin ?? linkedinPromptBody);
+      setXPrompt(
+        parsed.x ??
+          buildScopedPrompt(xPromptBody, selectedTimeRange, selectedRepositories, repositoryOptions)
+      );
+      setLinkedInPrompt(
+        parsed.linkedin ??
+          buildScopedPrompt(linkedinPromptBody, selectedTimeRange, selectedRepositories, repositoryOptions)
+      );
     } catch {
-      setXPrompt(xPromptBody);
-      setLinkedInPrompt(linkedinPromptBody);
+      setXPrompt(buildScopedPrompt(xPromptBody, selectedTimeRange, selectedRepositories, repositoryOptions));
+      setLinkedInPrompt(
+        buildScopedPrompt(linkedinPromptBody, selectedTimeRange, selectedRepositories, repositoryOptions)
+      );
     }
-  }, [hydrated, linkedinPromptBody, promptStorageKey, xPromptBody]);
+  }, [hydrated, linkedinPromptBody, promptStorageKey, repositoryOptions, selectedRepositories, selectedTimeRange, xPromptBody]);
 
   useEffect(() => {
     if (!hydrated) {
@@ -288,6 +309,12 @@ export function PromptStudio({
     setSelectedRepositories([]);
   }
 
+  async function copyWorkflowScope() {
+    await navigator.clipboard.writeText(buildWorkflowRepositoryScope(selectedRepositories, repositoryOptions));
+    setCopiedScope(true);
+    window.setTimeout(() => setCopiedScope(false), 1500);
+  }
+
   return (
     <section className="section">
       <div className="section-header">
@@ -363,6 +390,9 @@ export function PromptStudio({
           <a className="action-button" href={selectedWorkflowUrl} target="_blank" rel="noreferrer">
             Generate prompts in GitHub ({selectedTimeRangeLabel})
           </a>
+          <button type="button" className="action-button action-button--secondary" onClick={copyWorkflowScope}>
+            {copiedScope ? "Scope copied" : "Copy repo scope"}
+          </button>
           <button type="button" className="action-button action-button--secondary" onClick={resetPrompts}>
             Reset prompts
           </button>
@@ -371,7 +401,8 @@ export function PromptStudio({
         <p className="draft-help">
           Current scope: {promptContext.timeRange} · {promptContext.repositories}. The workflow button opens
           <code>{selectedWorkflowFile}</code> in GitHub Actions, where you can run the matching prompt job manually
-          for now.
+          for now. Paste the copied repository scope into the workflow&apos;s <code>repository_scope</code> input when
+          you want the run narrowed to selected repos.
         </p>
 
         <p className="draft-help">
