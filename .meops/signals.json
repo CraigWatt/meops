@@ -3798,6 +3798,138 @@
         "pushedAt": "2026-04-19T13:15:26Z",
         "updatedAt": "2026-04-19T13:15:30Z"
       }
+    },
+    {
+      "id": "eda4396d-406e-4bcd-af83-8adb9c3ce60f",
+      "kind": "pull_request",
+      "summary": "Merge pull request #4 from CraigWatt/codex/astro-starter-foundation",
+      "repository": "CraigWatt/webrefine-foundation",
+      "timestamp": "2026-04-19T14:44:04Z",
+      "priority": "medium",
+      "source": "git_commit",
+      "sourceId": "CraigWatt/webrefine-foundation:59aa17aad2e63ca832b8bd1de0d7cc76cb73cd5b",
+      "repositoryProfile": {
+        "name": "webrefine-foundation",
+        "fullName": "CraigWatt/webrefine-foundation",
+        "url": "https://github.com/CraigWatt/webrefine-foundation",
+        "defaultBranch": "main",
+        "language": "Astro",
+        "topics": [],
+        "isPrivate": false,
+        "isArchived": false,
+        "pushedAt": "2026-04-19T14:44:04Z",
+        "updatedAt": "2026-04-19T14:44:08Z"
+      }
+    },
+    {
+      "id": "dbd2a56c-847d-4895-9bdb-92ca5d1bb29f",
+      "kind": "milestone",
+      "summary": "Add astro starter foundation",
+      "repository": "CraigWatt/webrefine-foundation",
+      "timestamp": "2026-04-19T14:42:42Z",
+      "priority": "medium",
+      "source": "git_commit",
+      "sourceId": "CraigWatt/webrefine-foundation:090ad5fda1052e1d0d7d1e17664aebd931a47285",
+      "repositoryProfile": {
+        "name": "webrefine-foundation",
+        "fullName": "CraigWatt/webrefine-foundation",
+        "url": "https://github.com/CraigWatt/webrefine-foundation",
+        "defaultBranch": "main",
+        "language": "Astro",
+        "topics": [],
+        "isPrivate": false,
+        "isArchived": false,
+        "pushedAt": "2026-04-19T14:44:04Z",
+        "updatedAt": "2026-04-19T14:44:08Z"
+      }
+    },
+    {
+      "id": "58035798-61c8-40a0-ab82-48411600d750",
+      "kind": "pull_request",
+      "summary": "Merge pull request #3 from CraigWatt/codex/r3f-foundation",
+      "repository": "CraigWatt/webrefine-foundation",
+      "timestamp": "2026-04-19T14:29:46Z",
+      "priority": "low",
+      "source": "git_commit",
+      "sourceId": "CraigWatt/webrefine-foundation:9393b7f3f145570d3db54467e786133439707549",
+      "repositoryProfile": {
+        "name": "webrefine-foundation",
+        "fullName": "CraigWatt/webrefine-foundation",
+        "url": "https://github.com/CraigWatt/webrefine-foundation",
+        "defaultBranch": "main",
+        "language": "Astro",
+        "topics": [],
+        "isPrivate": false,
+        "isArchived": false,
+        "pushedAt": "2026-04-19T14:44:04Z",
+        "updatedAt": "2026-04-19T14:44:08Z"
+      }
+    },
+    {
+      "id": "a666af94-ea7b-4383-8a00-98daead301f8",
+      "kind": "milestone",
+      "summary": "Define foundation shape and design meta",
+      "repository": "CraigWatt/webrefine-foundation",
+      "timestamp": "2026-04-19T14:26:12Z",
+      "priority": "low",
+      "source": "git_commit",
+      "sourceId": "CraigWatt/webrefine-foundation:34a4ef4c7ba4549a5075992c8b316ab553edf26b",
+      "repositoryProfile": {
+        "name": "webrefine-foundation",
+        "fullName": "CraigWatt/webrefine-foundation",
+        "url": "https://github.com/CraigWatt/webrefine-foundation",
+        "defaultBranch": "main",
+        "language": "Astro",
+        "topics": [],
+        "isPrivate": false,
+        "isArchived": false,
+        "pushedAt": "2026-04-19T14:44:04Z",
+        "updatedAt": "2026-04-19T14:44:08Z"
+      }
+    },
+    {
+      "id": "562fc418-bc6a-46fc-9e44-0c07d0460c38",
+      "kind": "milestone",
+      "summary": "Add r3f starter scaffolding",
+      "repository": "CraigWatt/webrefine-foundation",
+      "timestamp": "2026-04-19T14:01:25Z",
+      "priority": "medium",
+      "source": "git_commit",
+      "sourceId": "CraigWatt/webrefine-foundation:7af1361393e583e92d7f632bfea62aa5003a6b0a",
+      "repositoryProfile": {
+        "name": "webrefine-foundation",
+        "fullName": "CraigWatt/webrefine-foundation",
+        "url": "https://github.com/CraigWatt/webrefine-foundation",
+        "defaultBranch": "main",
+        "language": "Astro",
+        "topics": [],
+        "isPrivate": false,
+        "isArchived": false,
+        "pushedAt": "2026-04-19T14:44:04Z",
+        "updatedAt": "2026-04-19T14:44:08Z"
+      }
+    },
+    {
+      "id": "a9d9cf7c-980a-449f-af5e-49865b844454",
+      "kind": "commit",
+      "summary": "Sync meops snapshot",
+      "repository": "CraigWatt/meops",
+      "timestamp": "2026-04-19T14:09:01Z",
+      "priority": "medium",
+      "source": "git_commit",
+      "sourceId": "CraigWatt/meops:b820137a9452853ed230245a750f08db513ff5ab",
+      "repositoryProfile": {
+        "name": "meops",
+        "fullName": "CraigWatt/meops",
+        "url": "https://github.com/CraigWatt/meops",
+        "defaultBranch": "main",
+        "language": "TypeScript",
+        "topics": [],
+        "isPrivate": false,
+        "isArchived": false,
+        "pushedAt": "2026-04-19T14:09:01Z",
+        "updatedAt": "2026-04-19T14:09:06Z"
+      }
     }
   ],
   "repositories": [
@@ -3810,14 +3942,14 @@
       "topics": [],
       "isPrivate": false,
       "isArchived": false,
-      "pushedAt": "2026-04-19T13:15:26Z",
-      "updatedAt": "2026-04-19T13:15:30Z",
+      "pushedAt": "2026-04-19T14:09:01Z",
+      "updatedAt": "2026-04-19T14:09:06Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T14:09:00.920Z",
-      "lastSyncedAt": "2026-04-19T14:09:00.967Z",
-      "lastSignalAt": "2026-04-19T13:15:26Z",
-      "signalCount": 63
+      "discoveredAt": "2026-04-19T15:05:50.718Z",
+      "lastSyncedAt": "2026-04-19T15:05:50.768Z",
+      "lastSignalAt": "2026-04-19T14:09:01Z",
+      "signalCount": 64
     },
     {
       "name": "craig-watt-website",
@@ -3843,8 +3975,8 @@
       "updatedAt": "2026-04-12T14:37:21Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T14:09:01.018Z",
-      "lastSyncedAt": "2026-04-19T14:09:01.063Z",
+      "discoveredAt": "2026-04-19T15:05:50.820Z",
+      "lastSyncedAt": "2026-04-19T15:05:50.868Z",
       "lastSignalAt": "2026-04-11T23:06:02Z",
       "signalCount": 12
     },
@@ -3864,8 +3996,8 @@
       "updatedAt": "2026-04-12T00:17:16Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T14:09:01.066Z",
-      "lastSyncedAt": "2026-04-19T14:09:01.111Z",
+      "discoveredAt": "2026-04-19T15:05:50.870Z",
+      "lastSyncedAt": "2026-04-19T15:05:50.924Z",
       "lastSignalAt": "2023-01-26T00:15:08Z",
       "signalCount": 12
     },
@@ -3882,8 +4014,8 @@
       "updatedAt": "2026-04-11T17:38:03Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T14:09:01.114Z",
-      "lastSyncedAt": "2026-04-19T14:09:01.158Z",
+      "discoveredAt": "2026-04-19T15:05:50.926Z",
+      "lastSyncedAt": "2026-04-19T15:05:50.972Z",
       "lastSignalAt": "2026-04-08T22:57:30Z",
       "signalCount": 12
     },
@@ -3900,8 +4032,8 @@
       "updatedAt": "2026-04-08T22:31:18Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T14:09:01.161Z",
-      "lastSyncedAt": "2026-04-19T14:09:01.190Z",
+      "discoveredAt": "2026-04-19T15:05:50.974Z",
+      "lastSyncedAt": "2026-04-19T15:05:51.005Z",
       "lastSignalAt": "2026-04-06T17:21:41Z",
       "signalCount": 8
     },
@@ -3935,8 +4067,8 @@
       "updatedAt": "2026-04-18T16:34:44Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T14:09:00.970Z",
-      "lastSyncedAt": "2026-04-19T14:09:01.015Z",
+      "discoveredAt": "2026-04-19T15:05:50.770Z",
+      "lastSyncedAt": "2026-04-19T15:05:50.817Z",
       "lastSignalAt": "2026-04-18T16:21:38Z",
       "signalCount": 14
     },
@@ -3953,8 +4085,8 @@
       "updatedAt": "2026-04-06T22:42:44Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T14:09:01.193Z",
-      "lastSyncedAt": "2026-04-19T14:09:01.243Z",
+      "discoveredAt": "2026-04-19T15:05:51.007Z",
+      "lastSyncedAt": "2026-04-19T15:05:51.052Z",
       "lastSignalAt": "2026-04-06T17:17:08Z",
       "signalCount": 12
     },
@@ -3971,8 +4103,8 @@
       "updatedAt": "2026-04-06T18:52:55Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T14:09:01.245Z",
-      "lastSyncedAt": "2026-04-19T14:09:01.282Z",
+      "discoveredAt": "2026-04-19T15:05:51.054Z",
+      "lastSyncedAt": "2026-04-19T15:05:51.089Z",
       "lastSignalAt": "2026-04-06T17:36:27Z",
       "signalCount": 9
     },
@@ -3989,8 +4121,8 @@
       "updatedAt": "2025-10-10T14:41:18Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T14:09:01.284Z",
-      "lastSyncedAt": "2026-04-19T14:09:01.333Z",
+      "discoveredAt": "2026-04-19T15:05:51.091Z",
+      "lastSyncedAt": "2026-04-19T15:05:51.138Z",
       "lastSignalAt": "2024-10-07T16:33:01Z",
       "signalCount": 12
     },
@@ -4018,19 +4150,20 @@
       "fullName": "CraigWatt/webrefine-foundation",
       "url": "https://github.com/CraigWatt/webrefine-foundation",
       "defaultBranch": "main",
+      "language": "Astro",
       "topics": [],
       "isPrivate": false,
       "isArchived": false,
-      "pushedAt": "2026-04-19T13:57:47Z",
-      "updatedAt": "2026-04-19T13:57:50Z",
+      "pushedAt": "2026-04-19T14:44:04Z",
+      "updatedAt": "2026-04-19T14:44:08Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T14:09:00.889Z",
-      "lastSyncedAt": "2026-04-19T14:09:00.918Z",
-      "lastSignalAt": "2026-04-18T20:12:09Z",
-      "signalCount": 5
+      "discoveredAt": "2026-04-19T15:05:50.659Z",
+      "lastSyncedAt": "2026-04-19T15:05:50.715Z",
+      "lastSignalAt": "2026-04-19T14:01:25Z",
+      "signalCount": 10
     }
   ],
   "draftPublications": [],
-  "snapshotRefreshedAt": "2026-04-19T14:09:01.339Z"
+  "snapshotRefreshedAt": "2026-04-19T15:05:51.146Z"
 }
