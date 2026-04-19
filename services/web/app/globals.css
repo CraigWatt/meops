@@ -340,6 +340,18 @@ h1 {
   accent-color: var(--accent);
 }
 
+.prompt-studio-card {
+  margin-bottom: 1rem;
+}
+
+.prompt-channel-grid {
+  margin-top: 1rem;
+}
+
+.prompt-card {
+  min-height: 100%;
+}
+
 /* Stats row */
 .stats-row {
   display: grid;

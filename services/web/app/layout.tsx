@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   metadataBase,
   title: "meops — turn work into signal",
   description:
-    "A personal operations system that watches your GitHub repos and turns engineering activity into publishable drafts for X and LinkedIn.",
+    "A personal operations system that watches your GitHub repos and turns engineering activity into prompt-ready copy for X and LinkedIn.",
   icons: {
     icon: "favicon.jpg",
     apple: "apple-touch-icon.jpg"
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "meops — turn work into signal",
     description:
-      "Watches repository activity, extracts meaningful moments, and prepares publishable drafts without constant attention.",
+      "Watches repository activity, extracts meaningful moments, and prepares prompt-ready copy without constant attention.",
     type: "website",
     images: [{ url: "og-image.jpg", width: 1024, height: 1024, alt: "meops social preview" }]
   },
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "meops — turn work into signal",
     description:
-      "Watches repository activity, extracts meaningful moments, and prepares publishable drafts without constant attention.",
+      "Watches repository activity, extracts meaningful moments, and prepares prompt-ready copy without constant attention.",
     images: ["og-image.jpg"]
   }
 };
