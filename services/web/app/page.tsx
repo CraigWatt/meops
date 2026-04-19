@@ -1,6 +1,5 @@
 import { getDashboardSignals, getRepositoryCatalog, getSnapshotMetadata } from "@meops/store";
 import { channelLabel, formatDraft } from "@meops/content";
-import { buildSnapshotPrompts } from "@meops/generation";
 import { PromptStudio } from "./prompt-studio";
 
 function formatTimestamp(timestamp?: string): string {
@@ -120,7 +119,6 @@ export default async function Home() {
     latestRepositorySyncTime,
     repositories.length
   );
-  const snapshotPrompts = buildSnapshotPrompts(orderedSignals, orderedRepositories);
   const promptCacheKey = latestSnapshotRefreshTime ?? latestRepositorySyncTime ?? "initial";
   return (
     <main className="page">
@@ -181,12 +179,8 @@ export default async function Home() {
       </div>
 
       <PromptStudio
-        xPromptBody={snapshotPrompts.x.prompt}
-        linkedinPromptBody={snapshotPrompts.linkedin.prompt}
-        repositoryCount={activeRepositories.length}
-        repositoryOptions={activeRepositories.map((repository) => repository.fullName)}
-        sourceCount={snapshotPrompts.x.sourceCount}
-        sources={snapshotPrompts.x.sources}
+        signals={orderedSignals}
+        repositories={activeRepositories}
         promptCacheKey={promptCacheKey}
       />
 
