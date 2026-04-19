@@ -1,7 +1,7 @@
 import { getDashboardSignals, getRepositoryCatalog, getSnapshotMetadata } from "@meops/store";
 import { channelLabel, formatDraft } from "@meops/content";
-import { buildSnapshotXDraft } from "@meops/generation";
-import { XHandoffPanel } from "./x-handoff-panel";
+import { buildSnapshotPrompts } from "@meops/generation";
+import { PromptStudio } from "./prompt-studio";
 
 function formatTimestamp(timestamp?: string): string {
   if (!timestamp) {
@@ -120,8 +120,8 @@ export default async function Home() {
     latestRepositorySyncTime,
     repositories.length
   );
-  const xSnapshotDraft = buildSnapshotXDraft(orderedSignals, orderedRepositories);
-  const xDraftCacheKey = latestSnapshotRefreshTime ?? latestRepositorySyncTime ?? "initial";
+  const snapshotPrompts = buildSnapshotPrompts(orderedSignals, orderedRepositories);
+  const promptCacheKey = latestSnapshotRefreshTime ?? latestRepositorySyncTime ?? "initial";
 
   return (
     <main className="page">
@@ -135,7 +135,7 @@ export default async function Home() {
           <h1>Turn work into signal</h1>
           <p className="tagline">
             Static snapshot of repository activity, refreshed by GitHub Actions when
-            the worker runs. It prepares publishable drafts for X and LinkedIn
+            the worker runs. It prepares prompt-ready copy for X and LinkedIn
             without pretending to be a live control panel.
           </p>
         </div>
@@ -181,16 +181,14 @@ export default async function Home() {
         </div>
       </div>
 
-      <XHandoffPanel
-        draftTitle={xSnapshotDraft.draft.title}
-        draftBody={xSnapshotDraft.draft.body}
-        promptBody={xSnapshotDraft.prompt}
+      <PromptStudio
+        xPromptBody={snapshotPrompts.x.prompt}
+        linkedinPromptBody={snapshotPrompts.linkedin.prompt}
         repositoryCount={activeRepositories.length}
         repositoryOptions={activeRepositories.map((repository) => repository.fullName)}
-        sourceCount={xSnapshotDraft.sourceCount}
-        sources={xSnapshotDraft.sources}
-        draftCacheKey={xDraftCacheKey}
-        workflowUrl="https://github.com/CraigWatt/meops/actions/workflows/publish-x.yml"
+        sourceCount={snapshotPrompts.x.sourceCount}
+        sources={snapshotPrompts.x.sources}
+        promptCacheKey={promptCacheKey}
       />
 
       {/* Publishing channels */}

@@ -32,6 +32,17 @@ export interface SnapshotXDraft {
   prompt: string;
 }
 
+export interface SnapshotPrompt {
+  sources: SnapshotSignalSource[];
+  sourceCount: number;
+  prompt: string;
+}
+
+export interface SnapshotPromptSet {
+  x: SnapshotPrompt;
+  linkedin: SnapshotPrompt;
+}
+
 interface RepoPromptSummary {
   repository: string;
   label: string;
@@ -545,6 +556,7 @@ function composeSnapshotBody(
 }
 
 function composeSnapshotPrompt(
+  channel: DraftChannel,
   brandName: string,
   repositoryCount: number,
   signalCount: number,
@@ -567,14 +579,26 @@ function composeSnapshotPrompt(
         `- ${summary.repository}: ${summary.insight}\n  Strongest examples: ${summary.strongestSignals.join(" | ")}`
     )
     .join("\n");
+  const platformName = channel === "linkedin" ? "LinkedIn post" : "X post";
+  const goal =
+    channel === "linkedin"
+      ? "Write one concise, human-sounding LinkedIn post that summarizes the overall repo activity."
+      : "Write one concise, human-sounding X post that summarizes the overall repo activity.";
+  const tone =
+    channel === "linkedin"
+      ? "Keep it professional, specific, and slightly more explanatory than X."
+      : "Keep it under 280 characters and make it feel specific, useful, and not like a raw list.";
+  const ending =
+    channel === "linkedin"
+      ? "- Return only the final LinkedIn post text."
+      : "- Return only the final X post text.";
 
   return normalizeLineBreaks(`
-You are writing an X post for ${brandName} based on a fresh meops snapshot.
+You are writing a ${platformName} for ${brandName} based on a fresh meops snapshot.
 
 Goal:
-- Write one concise, human-sounding X post that summarizes the overall repo activity.
-- Keep it under 280 characters.
-- Make it feel specific, useful, and not like a raw list.
+- ${goal}
+- ${tone}
 - Mention the strongest signals, but avoid naming every repository unless it helps the narrative.
 
 Snapshot context:
@@ -600,7 +624,8 @@ Instructions:
 - Lead with the most important change or pattern.
 - Prefer a clean summary over a pile of repo names.
 - Keep the tone factual, confident, and compact.
-- Return only the final X post text.
+- ${channel === "linkedin" ? "Prefer 2-4 short paragraphs or a compact paragraph with a closing line." : "Write with enough specificity to feel grounded while staying concise."}
+- ${ending}
   `);
 }
 
@@ -649,6 +674,36 @@ Prepared by ${brandName}.
   };
 }
 
+function buildSnapshotPrompt(
+  channel: DraftChannel,
+  signals: DashboardSignal[],
+  repositories: RepositoryCatalogEntry[],
+  options: DraftGenerationOptions = {}
+): SnapshotPrompt {
+  const brandName = options.brandName ?? "meops";
+  const publishableSignals = [...signals]
+    .filter((signal) => signal.publishable)
+    .sort((left, right) => new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime());
+  const stories = buildRepoStories(signals, repositories);
+  const sortedSignals = [...signals].slice().sort((left, right) => signalStrength(right) - signalStrength(left));
+  const sources = buildSnapshotSources(sortedSignals, 5);
+  const repoSummaries = buildRepoPromptSummaries(signals, repositories);
+
+  return {
+    sources,
+    sourceCount: signals.length,
+    prompt: composeSnapshotPrompt(
+      channel,
+      brandName,
+      stories.length,
+      signals.length,
+      publishableSignals.length,
+      sources,
+      repoSummaries
+    )
+  };
+}
+
 export function buildDrafts(
   signal: SignalEvent,
   options: DraftGenerationOptions = {}
@@ -682,17 +737,7 @@ export function buildSnapshotXDraft(
     stories,
     maxLength
   );
-  const sortedSignals = [...signals].slice().sort((left, right) => signalStrength(right) - signalStrength(left));
-  const sources = buildSnapshotSources(sortedSignals, 5);
-  const repoSummaries = buildRepoPromptSummaries(signals, repositories);
-  const prompt = composeSnapshotPrompt(
-    brandName,
-    stories.length,
-    signals.length,
-    publishableSignals.length,
-    sources,
-    repoSummaries
-  );
+  const prompt = buildSnapshotPrompt("x", signals, repositories, options);
 
   return {
     draft: {
@@ -701,9 +746,20 @@ export function buildSnapshotXDraft(
       body,
       status: publishableSignals.length > 0 ? "needs_review" : "prepared"
     },
-    sources,
-    sourceCount: signals.length,
-    prompt
+    sources: prompt.sources,
+    sourceCount: prompt.sourceCount,
+    prompt: prompt.prompt
+  };
+}
+
+export function buildSnapshotPrompts(
+  signals: DashboardSignal[],
+  repositories: RepositoryCatalogEntry[],
+  options: DraftGenerationOptions = {}
+): SnapshotPromptSet {
+  return {
+    x: buildSnapshotPrompt("x", signals, repositories, options),
+    linkedin: buildSnapshotPrompt("linkedin", signals, repositories, options)
   };
 }
 

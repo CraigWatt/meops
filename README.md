@@ -9,7 +9,7 @@ What it does today:
 - discovers public GitHub repos from a single token
 - tracks repo visibility in a central catalog
 - extracts meaningful commits and pull requests into signals
-- generates X and LinkedIn drafts for those signals
+- generates X and LinkedIn prompt drafts for those signals
 - marks publishable material as `needs_review`
 - shows the current state in a static GitHub Pages dashboard
 - exposes a private publish gate for approved drafts
@@ -59,7 +59,7 @@ Current implemented surfaces:
 2. The worker discovers repos and refreshes the signal snapshot with `MEOPS_GITHUB_TOKEN`.
 3. The refreshed snapshot is committed back to `main` as `.meops/signals.json`.
 4. The static web build reads that refreshed snapshot.
-5. The Pages site shows watched repos, signals, draft review status, an editable aggregate X draft, and a refresh handoff to GitHub Actions.
+5. The Pages site shows watched repos, signals, draft review status, a prompt studio for X and LinkedIn, and a refresh handoff to GitHub Actions.
 6. The private GitHub Actions publish workflow can only be run by the repository owner.
 
 ## Local setup
