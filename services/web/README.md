@@ -5,7 +5,7 @@ snapshot of system status, active sources, prepared drafts, and publishable
 moments.
 
 It also includes a prompt studio for X and LinkedIn plus refresh and prompt
-buttons that point at the private GitHub Actions workflows.
+buttons that point at the matching GitHub Actions workflows.
 
 For now, the web app is configured as a static export so it can be served from
 GitHub Pages during early development and testing.
