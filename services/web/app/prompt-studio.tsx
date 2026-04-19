@@ -10,7 +10,6 @@ interface PromptStudioProps {
   repositoryOptions: string[];
   sourceCount: number;
   sources: SnapshotSignalSource[];
-  promptWorkflowUrl: string;
   promptCacheKey: string;
 }
 
@@ -27,6 +26,16 @@ const timeRangeOptions = [
 ] as const;
 
 type TimeRange = (typeof timeRangeOptions)[number]["value"];
+
+const promptWorkflowFiles: Record<TimeRange, string> = {
+  day: "generate-prompts-day.yml",
+  week: "generate-prompts-week.yml",
+  month: "generate-prompts-month.yml",
+  "three-months": "generate-prompts-three-months.yml",
+  "six-months": "generate-prompts-six-months.yml",
+  year: "generate-prompts-year.yml",
+  all: "generate-prompts.yml"
+};
 
 function formatSourceLabel(source: SnapshotSignalSource): string {
   return `${source.repository} · ${source.kind} · ${source.priority}`;
@@ -142,7 +151,6 @@ export function PromptStudio({
   repositoryOptions,
   sourceCount,
   sources,
-  promptWorkflowUrl,
   promptCacheKey
 }: PromptStudioProps) {
   const [xPrompt, setXPrompt] = useState(xPromptBody);
@@ -248,6 +256,8 @@ export function PromptStudio({
 
   const selectedTimeRangeLabel =
     timeRangeOptions.find((option) => option.value === selectedTimeRange)?.label ?? "All time";
+  const selectedWorkflowFile = promptWorkflowFiles[selectedTimeRange];
+  const selectedWorkflowUrl = `https://github.com/CraigWatt/meops/actions/workflows/${selectedWorkflowFile}`;
 
   function resetPrompts() {
     window.localStorage.removeItem(promptStorageKey);
@@ -350,7 +360,7 @@ export function PromptStudio({
         </div>
 
         <div className="draft-actions">
-          <a className="action-button" href={promptWorkflowUrl} target="_blank" rel="noreferrer">
+          <a className="action-button" href={selectedWorkflowUrl} target="_blank" rel="noreferrer">
             Generate prompts in GitHub ({selectedTimeRangeLabel})
           </a>
           <button type="button" className="action-button action-button--secondary" onClick={resetPrompts}>
@@ -360,8 +370,8 @@ export function PromptStudio({
 
         <p className="draft-help">
           Current scope: {promptContext.timeRange} · {promptContext.repositories}. The workflow button opens
-          <code>generate-prompts.yml</code> in GitHub Actions, where you can run the same prompt job manually for
-          now.
+          <code>{selectedWorkflowFile}</code> in GitHub Actions, where you can run the matching prompt job manually
+          for now.
         </p>
 
         <p className="draft-help">
