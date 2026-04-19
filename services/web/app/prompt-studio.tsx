@@ -10,6 +10,7 @@ interface PromptStudioProps {
   repositoryOptions: string[];
   sourceCount: number;
   sources: SnapshotSignalSource[];
+  promptWorkflowUrl: string;
   promptCacheKey: string;
 }
 
@@ -22,7 +23,7 @@ const timeRangeOptions = [
   { value: "three-months", label: "Last 3 months" },
   { value: "six-months", label: "Last 6 months" },
   { value: "year", label: "Last year" },
-  { value: "all", label: "All signals" }
+  { value: "all", label: "All time" }
 ] as const;
 
 type TimeRange = (typeof timeRangeOptions)[number]["value"];
@@ -63,7 +64,7 @@ function buildScopedPrompt(
   repositoryOptions: string[]
 ): string {
   const selectedTimeRangeLabel =
-    timeRangeOptions.find((option) => option.value === selectedTimeRange)?.label ?? "All signals";
+    timeRangeOptions.find((option) => option.value === selectedTimeRange)?.label ?? "All time";
   const selectedRepositoryLabel = buildRepositorySelectionLabel(selectedRepositories, repositoryOptions);
 
   return normalizeLineBreaks(`
@@ -141,6 +142,7 @@ export function PromptStudio({
   repositoryOptions,
   sourceCount,
   sources,
+  promptWorkflowUrl,
   promptCacheKey
 }: PromptStudioProps) {
   const [xPrompt, setXPrompt] = useState(xPromptBody);
@@ -238,17 +240,14 @@ export function PromptStudio({
   const promptContext = useMemo(
     () => ({
       timeRange:
-        timeRangeOptions.find((option) => option.value === selectedTimeRange)?.label ?? "All signals",
+        timeRangeOptions.find((option) => option.value === selectedTimeRange)?.label ?? "All time",
       repositories: buildRepositorySelectionLabel(selectedRepositories, repositoryOptions)
     }),
     [repositoryOptions, selectedRepositories, selectedTimeRange]
   );
 
-  function generatePrompts() {
-    setXPrompt(buildScopedPrompt(xPromptBody, selectedTimeRange, selectedRepositories, repositoryOptions));
-    setLinkedInPrompt(buildScopedPrompt(linkedinPromptBody, selectedTimeRange, selectedRepositories, repositoryOptions));
-    setCopiedPrompt(null);
-  }
+  const selectedTimeRangeLabel =
+    timeRangeOptions.find((option) => option.value === selectedTimeRange)?.label ?? "All time";
 
   function resetPrompts() {
     window.localStorage.removeItem(promptStorageKey);
@@ -283,7 +282,7 @@ export function PromptStudio({
     <section className="section">
       <div className="section-header">
         <h2 className="section-title">Prompt studio</h2>
-        <span className="section-meta">GitHub Pages first · no backend required yet</span>
+        <span className="section-meta">GitHub Pages first · workflow-backed prompt generation</span>
       </div>
 
       <div className="card card--featured prompt-studio-card">
@@ -291,7 +290,7 @@ export function PromptStudio({
           <div>
             <h3 className="card-title">Snapshot prompt controls</h3>
             <p className="card-description">
-              Choose a signal window and repository scope, then regenerate the prompts. The controls are
+              Choose a signal window and repository scope, then open the prompt workflow in GitHub. The controls are
               foundation-only for now, but the selected scope is carried into the prompt text as editorial guidance.
             </p>
           </div>
@@ -351,17 +350,22 @@ export function PromptStudio({
         </div>
 
         <div className="draft-actions">
-          <button type="button" className="action-button" onClick={generatePrompts}>
-            Generate prompts
-          </button>
+          <a className="action-button" href={promptWorkflowUrl} target="_blank" rel="noreferrer">
+            Generate prompts in GitHub ({selectedTimeRangeLabel})
+          </a>
           <button type="button" className="action-button action-button--secondary" onClick={resetPrompts}>
             Reset prompts
           </button>
         </div>
 
         <p className="draft-help">
-          Current scope: {promptContext.timeRange} · {promptContext.repositories}. The prompt generator still starts
-          from the full snapshot until filtered generation is wired up.
+          Current scope: {promptContext.timeRange} · {promptContext.repositories}. The workflow button opens
+          <code>generate-prompts.yml</code> in GitHub Actions, where you can run the same prompt job manually for
+          now.
+        </p>
+
+        <p className="draft-help">
+          Workflow scope shown on the page: {selectedTimeRangeLabel} · {promptContext.repositories}
         </p>
 
         <div className="draft-provenance">

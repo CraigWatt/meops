@@ -463,8 +463,8 @@ function composeSnapshotPrompt(
       : "Keep it under 280 characters and make it feel specific, useful, and not like a raw list.";
   const ending =
     channel === "linkedin"
-      ? "- Return only the final LinkedIn post text."
-      : "- Return only the final X post text.";
+      ? "Return only the final LinkedIn post text."
+      : "Return only the final X post text.";
 
   return normalizeLineBreaks(`
 You are writing a ${platformName} for ${brandName} based on a fresh meops snapshot.
