@@ -11,9 +11,7 @@ What it does today:
 - extracts meaningful commits and pull requests into signals
 - generates X and LinkedIn prompt drafts for those signals
 - offers a workflow-backed prompt studio for X and LinkedIn
-- marks publishable material as `needs_review`
 - shows the current state in a static GitHub Pages dashboard
-- exposes a private publish gate for approved drafts
 
 What is intentionally out of scope for now:
 
@@ -75,15 +73,6 @@ Recommended local setup:
 
 The token stays out of git because `.env` and `.env.*` are ignored.
 
-For publish testing, add the X OAuth 1.0a secrets to GitHub or local env:
-
-- `MEOPS_X_CONSUMER_KEY`
-- `MEOPS_X_CONSUMER_SECRET`
-- `MEOPS_X_ACCESS_TOKEN`
-- `MEOPS_X_ACCESS_TOKEN_SECRET`
-
-Use the `Publish X Draft` workflow in GitHub Actions to post the edited text.
-
 ## Next step
 
-The next likely slice is tightening the private publish workflow and adding any remaining channel-specific polish around X and LinkedIn output.
+The next likely slice is tightening the prompt generation workflows and refining the X and LinkedIn editorial output.
