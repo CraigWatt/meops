@@ -1,4 +1,4 @@
-name: Generate prompts (All time)
+name: Generate prompts (Last day)
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ permissions:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  MEOPS_PROMPT_TIME_RANGE: all
+  MEOPS_PROMPT_TIME_RANGE: day
   MEOPS_PROMPT_REPOSITORIES: all watched repositories
 
 jobs:
