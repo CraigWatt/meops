@@ -3692,6 +3692,112 @@
         "pushedAt": "2026-04-19T13:02:44Z",
         "updatedAt": "2026-04-19T12:47:29Z"
       }
+    },
+    {
+      "id": "72ec7f7a-d35d-42ff-9c28-71130743a6d7",
+      "kind": "pull_request",
+      "summary": "Merge pull request #2 from CraigWatt/codex/r3f-foundation",
+      "repository": "CraigWatt/webrefine-foundation",
+      "timestamp": "2026-04-19T13:57:46Z",
+      "priority": "medium",
+      "source": "git_commit",
+      "sourceId": "CraigWatt/webrefine-foundation:888f71a5af7fe4e1f6d1abd514530c14ca59d6d7",
+      "repositoryProfile": {
+        "name": "webrefine-foundation",
+        "fullName": "CraigWatt/webrefine-foundation",
+        "url": "https://github.com/CraigWatt/webrefine-foundation",
+        "defaultBranch": "main",
+        "topics": [],
+        "isPrivate": false,
+        "isArchived": false,
+        "pushedAt": "2026-04-19T13:57:47Z",
+        "updatedAt": "2026-04-19T13:57:50Z"
+      }
+    },
+    {
+      "id": "9cb71c59-60a9-4604-8250-b1168a74a9c2",
+      "kind": "milestone",
+      "summary": "Add r3f foundation",
+      "repository": "CraigWatt/webrefine-foundation",
+      "timestamp": "2026-04-19T13:56:08Z",
+      "priority": "medium",
+      "source": "git_commit",
+      "sourceId": "CraigWatt/webrefine-foundation:edc619f8352b5b3442b52d073057120dc694fc7a",
+      "repositoryProfile": {
+        "name": "webrefine-foundation",
+        "fullName": "CraigWatt/webrefine-foundation",
+        "url": "https://github.com/CraigWatt/webrefine-foundation",
+        "defaultBranch": "main",
+        "topics": [],
+        "isPrivate": false,
+        "isArchived": false,
+        "pushedAt": "2026-04-19T13:57:47Z",
+        "updatedAt": "2026-04-19T13:57:50Z"
+      }
+    },
+    {
+      "id": "52478e5d-c9ce-4258-9f65-9f9eadd685f3",
+      "kind": "pull_request",
+      "summary": "Merge pull request #1 from CraigWatt/codex/ai-ready-foundation",
+      "repository": "CraigWatt/webrefine-foundation",
+      "timestamp": "2026-04-19T13:53:04Z",
+      "priority": "low",
+      "source": "git_commit",
+      "sourceId": "CraigWatt/webrefine-foundation:f6bf898e4ebc20cbe3f436c613c02c9b751c85b9",
+      "repositoryProfile": {
+        "name": "webrefine-foundation",
+        "fullName": "CraigWatt/webrefine-foundation",
+        "url": "https://github.com/CraigWatt/webrefine-foundation",
+        "defaultBranch": "main",
+        "topics": [],
+        "isPrivate": false,
+        "isArchived": false,
+        "pushedAt": "2026-04-19T13:57:47Z",
+        "updatedAt": "2026-04-19T13:57:50Z"
+      }
+    },
+    {
+      "id": "e7e89c07-d8c2-46b5-be2d-219daa19d942",
+      "kind": "milestone",
+      "summary": "Ai-ready foundation",
+      "repository": "CraigWatt/webrefine-foundation",
+      "timestamp": "2026-04-18T20:12:09Z",
+      "priority": "low",
+      "source": "git_commit",
+      "sourceId": "CraigWatt/webrefine-foundation:c466afee54009096e5c82e433fde9e319c55e1ad",
+      "repositoryProfile": {
+        "name": "webrefine-foundation",
+        "fullName": "CraigWatt/webrefine-foundation",
+        "url": "https://github.com/CraigWatt/webrefine-foundation",
+        "defaultBranch": "main",
+        "topics": [],
+        "isPrivate": false,
+        "isArchived": false,
+        "pushedAt": "2026-04-19T13:57:47Z",
+        "updatedAt": "2026-04-19T13:57:50Z"
+      }
+    },
+    {
+      "id": "4b14ef5c-fa7d-44b1-be9e-c18e2971a7fa",
+      "kind": "commit",
+      "summary": "Sync meops snapshot",
+      "repository": "CraigWatt/meops",
+      "timestamp": "2026-04-19T13:15:26Z",
+      "priority": "medium",
+      "source": "git_commit",
+      "sourceId": "CraigWatt/meops:d06b7dcf84b85286b38b95cf39cc808c545ea95e",
+      "repositoryProfile": {
+        "name": "meops",
+        "fullName": "CraigWatt/meops",
+        "url": "https://github.com/CraigWatt/meops",
+        "defaultBranch": "main",
+        "language": "TypeScript",
+        "topics": [],
+        "isPrivate": false,
+        "isArchived": false,
+        "pushedAt": "2026-04-19T13:15:26Z",
+        "updatedAt": "2026-04-19T13:15:30Z"
+      }
     }
   ],
   "repositories": [
@@ -3704,14 +3810,14 @@
       "topics": [],
       "isPrivate": false,
       "isArchived": false,
-      "pushedAt": "2026-04-19T13:02:44Z",
-      "updatedAt": "2026-04-19T12:47:29Z",
+      "pushedAt": "2026-04-19T13:15:26Z",
+      "updatedAt": "2026-04-19T13:15:30Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T13:15:25.632Z",
-      "lastSyncedAt": "2026-04-19T13:15:25.683Z",
-      "lastSignalAt": "2026-04-19T12:47:25Z",
-      "signalCount": 62
+      "discoveredAt": "2026-04-19T14:09:00.920Z",
+      "lastSyncedAt": "2026-04-19T14:09:00.967Z",
+      "lastSignalAt": "2026-04-19T13:15:26Z",
+      "signalCount": 63
     },
     {
       "name": "craig-watt-website",
@@ -3737,8 +3843,8 @@
       "updatedAt": "2026-04-12T14:37:21Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T13:15:25.740Z",
-      "lastSyncedAt": "2026-04-19T13:15:25.786Z",
+      "discoveredAt": "2026-04-19T14:09:01.018Z",
+      "lastSyncedAt": "2026-04-19T14:09:01.063Z",
       "lastSignalAt": "2026-04-11T23:06:02Z",
       "signalCount": 12
     },
@@ -3758,8 +3864,8 @@
       "updatedAt": "2026-04-12T00:17:16Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T13:15:25.789Z",
-      "lastSyncedAt": "2026-04-19T13:15:25.835Z",
+      "discoveredAt": "2026-04-19T14:09:01.066Z",
+      "lastSyncedAt": "2026-04-19T14:09:01.111Z",
       "lastSignalAt": "2023-01-26T00:15:08Z",
       "signalCount": 12
     },
@@ -3776,8 +3882,8 @@
       "updatedAt": "2026-04-11T17:38:03Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T13:15:25.838Z",
-      "lastSyncedAt": "2026-04-19T13:15:25.882Z",
+      "discoveredAt": "2026-04-19T14:09:01.114Z",
+      "lastSyncedAt": "2026-04-19T14:09:01.158Z",
       "lastSignalAt": "2026-04-08T22:57:30Z",
       "signalCount": 12
     },
@@ -3794,8 +3900,8 @@
       "updatedAt": "2026-04-08T22:31:18Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T13:15:25.885Z",
-      "lastSyncedAt": "2026-04-19T13:15:25.915Z",
+      "discoveredAt": "2026-04-19T14:09:01.161Z",
+      "lastSyncedAt": "2026-04-19T14:09:01.190Z",
       "lastSignalAt": "2026-04-06T17:21:41Z",
       "signalCount": 8
     },
@@ -3829,8 +3935,8 @@
       "updatedAt": "2026-04-18T16:34:44Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T13:15:25.692Z",
-      "lastSyncedAt": "2026-04-19T13:15:25.738Z",
+      "discoveredAt": "2026-04-19T14:09:00.970Z",
+      "lastSyncedAt": "2026-04-19T14:09:01.015Z",
       "lastSignalAt": "2026-04-18T16:21:38Z",
       "signalCount": 14
     },
@@ -3847,8 +3953,8 @@
       "updatedAt": "2026-04-06T22:42:44Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T13:15:25.917Z",
-      "lastSyncedAt": "2026-04-19T13:15:25.963Z",
+      "discoveredAt": "2026-04-19T14:09:01.193Z",
+      "lastSyncedAt": "2026-04-19T14:09:01.243Z",
       "lastSignalAt": "2026-04-06T17:17:08Z",
       "signalCount": 12
     },
@@ -3865,8 +3971,8 @@
       "updatedAt": "2026-04-06T18:52:55Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T13:15:25.965Z",
-      "lastSyncedAt": "2026-04-19T13:15:25.999Z",
+      "discoveredAt": "2026-04-19T14:09:01.245Z",
+      "lastSyncedAt": "2026-04-19T14:09:01.282Z",
       "lastSignalAt": "2026-04-06T17:36:27Z",
       "signalCount": 9
     },
@@ -3883,8 +3989,8 @@
       "updatedAt": "2025-10-10T14:41:18Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T13:15:26.001Z",
-      "lastSyncedAt": "2026-04-19T13:15:26.052Z",
+      "discoveredAt": "2026-04-19T14:09:01.284Z",
+      "lastSyncedAt": "2026-04-19T14:09:01.333Z",
       "lastSignalAt": "2024-10-07T16:33:01Z",
       "signalCount": 12
     },
@@ -3915,16 +4021,16 @@
       "topics": [],
       "isPrivate": false,
       "isArchived": false,
-      "pushedAt": "2026-04-18T20:12:13Z",
-      "updatedAt": "2026-04-18T20:05:11Z",
+      "pushedAt": "2026-04-19T13:57:47Z",
+      "updatedAt": "2026-04-19T13:57:50Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-04-19T13:15:25.686Z",
-      "lastSyncedAt": "2026-04-19T13:15:25.690Z",
-      "lastSignalAt": "2026-04-18T20:05:02Z",
-      "signalCount": 1
+      "discoveredAt": "2026-04-19T14:09:00.889Z",
+      "lastSyncedAt": "2026-04-19T14:09:00.918Z",
+      "lastSignalAt": "2026-04-18T20:12:09Z",
+      "signalCount": 5
     }
   ],
   "draftPublications": [],
-  "snapshotRefreshedAt": "2026-04-19T13:15:26.058Z"
+  "snapshotRefreshedAt": "2026-04-19T14:09:01.339Z"
 }
