@@ -2,6 +2,12 @@ name: Generate prompts (All time)
 
 on:
   workflow_dispatch:
+    inputs:
+      repository_scope:
+        description: Repository scope for the prompt
+        required: false
+        type: string
+        default: all watched repositories
 
 permissions:
   contents: read
@@ -9,7 +15,7 @@ permissions:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   MEOPS_PROMPT_TIME_RANGE: all
-  MEOPS_PROMPT_REPOSITORIES: all watched repositories
+  MEOPS_PROMPT_REPOSITORIES: ${{ inputs.repository_scope }}
 
 jobs:
   generate:
