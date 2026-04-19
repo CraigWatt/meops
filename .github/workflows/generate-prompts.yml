@@ -1,0 +1,55 @@
+name: Generate prompts
+
+on:
+  workflow_dispatch:
+    inputs:
+      time_range:
+        description: Time window to describe in the prompt context
+        required: true
+        type: choice
+        options:
+          - day
+          - week
+          - month
+          - three-months
+          - six-months
+          - year
+          - all
+        default: all
+      repository_scope:
+        description: Repository scope label to capture in the workflow summary
+        required: false
+        type: string
+        default: all watched repositories
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.8.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Generate prompts
+        run: node --experimental-strip-types .github/scripts/generate-prompts.ts
+        env:
+          MEOPS_PROMPT_TIME_RANGE: ${{ inputs.time_range }}
+          MEOPS_PROMPT_REPOSITORIES: ${{ inputs.repository_scope }}

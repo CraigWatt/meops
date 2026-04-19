@@ -122,6 +122,7 @@ export default async function Home() {
   );
   const snapshotPrompts = buildSnapshotPrompts(orderedSignals, orderedRepositories);
   const promptCacheKey = latestSnapshotRefreshTime ?? latestRepositorySyncTime ?? "initial";
+  const promptWorkflowUrl = "https://github.com/CraigWatt/meops/actions/workflows/generate-prompts.yml";
 
   return (
     <main className="page">
@@ -188,6 +189,7 @@ export default async function Home() {
         repositoryOptions={activeRepositories.map((repository) => repository.fullName)}
         sourceCount={snapshotPrompts.x.sourceCount}
         sources={snapshotPrompts.x.sources}
+        promptWorkflowUrl={promptWorkflowUrl}
         promptCacheKey={promptCacheKey}
       />
 
