@@ -22599,6 +22599,28 @@
         "pushedAt": "2026-07-03T18:46:24Z",
         "updatedAt": "2026-07-03T18:46:28Z"
       }
+    },
+    {
+      "id": "81f15bea-7f45-4340-bd56-15518603205b",
+      "kind": "commit",
+      "summary": "Sync meops snapshot",
+      "repository": "CraigWatt/meops",
+      "timestamp": "2026-07-03T20:13:03Z",
+      "priority": "medium",
+      "source": "git_commit",
+      "sourceId": "CraigWatt/meops:cb4265d10d49a11b2ab19502eeba5c2ce978d0ec",
+      "repositoryProfile": {
+        "name": "meops",
+        "fullName": "CraigWatt/meops",
+        "url": "https://github.com/CraigWatt/meops",
+        "defaultBranch": "main",
+        "language": "TypeScript",
+        "topics": [],
+        "isPrivate": false,
+        "isArchived": false,
+        "pushedAt": "2026-07-03T20:13:04Z",
+        "updatedAt": "2026-07-03T20:13:08Z"
+      }
     }
   ],
   "repositories": [
@@ -22611,14 +22633,14 @@
       "topics": [],
       "isPrivate": false,
       "isArchived": false,
-      "pushedAt": "2026-07-03T18:46:24Z",
-      "updatedAt": "2026-07-03T18:46:28Z",
+      "pushedAt": "2026-07-03T20:13:04Z",
+      "updatedAt": "2026-07-03T20:13:08Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-07-03T20:13:01.288Z",
-      "lastSyncedAt": "2026-07-03T20:13:01.528Z",
-      "lastSignalAt": "2026-07-03T18:46:23Z",
-      "signalCount": 886
+      "discoveredAt": "2026-07-03T21:39:56.248Z",
+      "lastSyncedAt": "2026-07-03T21:39:56.477Z",
+      "lastSignalAt": "2026-07-03T20:13:03Z",
+      "signalCount": 887
     },
     {
       "name": "craig-watt-website",
@@ -22644,8 +22666,8 @@
       "updatedAt": "2026-04-12T14:37:21Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-07-03T20:13:01.948Z",
-      "lastSyncedAt": "2026-07-03T20:13:02.159Z",
+      "discoveredAt": "2026-07-03T21:39:56.870Z",
+      "lastSyncedAt": "2026-07-03T21:39:57.065Z",
       "lastSignalAt": "2026-04-11T23:06:02Z",
       "signalCount": 12
     },
@@ -22665,8 +22687,8 @@
       "updatedAt": "2026-04-12T00:17:16Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-07-03T20:13:02.171Z",
-      "lastSyncedAt": "2026-07-03T20:13:02.383Z",
+      "discoveredAt": "2026-07-03T21:39:57.077Z",
+      "lastSyncedAt": "2026-07-03T21:39:57.272Z",
       "lastSignalAt": "2023-01-26T00:15:08Z",
       "signalCount": 12
     },
@@ -22683,8 +22705,8 @@
       "updatedAt": "2026-04-11T17:38:03Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-07-03T20:13:02.395Z",
-      "lastSyncedAt": "2026-07-03T20:13:02.615Z",
+      "discoveredAt": "2026-07-03T21:39:57.283Z",
+      "lastSyncedAt": "2026-07-03T21:39:57.493Z",
       "lastSignalAt": "2026-04-08T22:57:30Z",
       "signalCount": 12
     },
@@ -22701,8 +22723,8 @@
       "updatedAt": "2026-04-08T22:31:18Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-07-03T20:13:02.626Z",
-      "lastSyncedAt": "2026-07-03T20:13:02.765Z",
+      "discoveredAt": "2026-07-03T21:39:57.503Z",
+      "lastSyncedAt": "2026-07-03T21:39:57.641Z",
       "lastSignalAt": "2026-04-06T17:21:41Z",
       "signalCount": 8
     },
@@ -22736,8 +22758,8 @@
       "updatedAt": "2026-04-26T19:35:22Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-07-03T20:13:01.538Z",
-      "lastSyncedAt": "2026-07-03T20:13:01.748Z",
+      "discoveredAt": "2026-07-03T21:39:56.487Z",
+      "lastSyncedAt": "2026-07-03T21:39:56.684Z",
       "lastSignalAt": "2026-04-26T19:12:18Z",
       "signalCount": 29
     },
@@ -22754,8 +22776,8 @@
       "updatedAt": "2026-04-06T22:42:44Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-07-03T20:13:02.776Z",
-      "lastSyncedAt": "2026-07-03T20:13:03.435Z",
+      "discoveredAt": "2026-07-03T21:39:57.652Z",
+      "lastSyncedAt": "2026-07-03T21:39:57.849Z",
       "lastSignalAt": "2026-04-06T17:17:08Z",
       "signalCount": 12
     },
@@ -22772,8 +22794,8 @@
       "updatedAt": "2026-04-06T18:52:55Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-07-03T20:13:03.476Z",
-      "lastSyncedAt": "2026-07-03T20:13:03.685Z",
+      "discoveredAt": "2026-07-03T21:39:57.860Z",
+      "lastSyncedAt": "2026-07-03T21:39:58.006Z",
       "lastSignalAt": "2026-04-06T17:36:27Z",
       "signalCount": 9
     },
@@ -22790,8 +22812,8 @@
       "updatedAt": "2025-10-10T14:41:18Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-07-03T20:13:03.696Z",
-      "lastSyncedAt": "2026-07-03T20:13:03.910Z",
+      "discoveredAt": "2026-07-03T21:39:58.016Z",
+      "lastSyncedAt": "2026-07-03T21:39:58.210Z",
       "lastSignalAt": "2024-10-07T16:33:01Z",
       "signalCount": 12
     },
@@ -22827,12 +22849,12 @@
       "updatedAt": "2026-04-19T14:44:08Z",
       "watched": true,
       "source": "github_discovery",
-      "discoveredAt": "2026-07-03T20:13:01.759Z",
-      "lastSyncedAt": "2026-07-03T20:13:01.937Z",
+      "discoveredAt": "2026-07-03T21:39:56.695Z",
+      "lastSyncedAt": "2026-07-03T21:39:56.860Z",
       "lastSignalAt": "2026-04-19T14:01:25Z",
       "signalCount": 10
     }
   ],
   "draftPublications": [],
-  "snapshotRefreshedAt": "2026-07-03T20:13:03.945Z"
+  "snapshotRefreshedAt": "2026-07-03T21:39:58.243Z"
 }
